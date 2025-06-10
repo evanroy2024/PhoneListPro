@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Settings{% endblock %}
+
+{% block content %}
+<style>
+    .settings-wrapper {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .page-header h1 {
+        font-size: 2.5em;
+        color: #2c3e50;
+        font-weight: 300;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        color: #7f8c8d;
+        font-size: 1.1em;
+    }
+
+    .settings-section {
+        background: #fafafa;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 25px;
+        border: 1px solid #e8e8e8;
+        transition: all 0.3s ease;
+    }
+
+    .settings-section:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+
+    .section-title {
+        font-size: 1.3em;
+        color: #34495e;
+        margin-bottom: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .setting-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .setting-item:last-child {
+        border-bottom: none;
+    }
+
+    .setting-info {
+        flex: 1;
+    }
+
+    .setting-label {
+        font-size: 1.05em;
+        color: #2c3e50;
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .setting-description {
+        font-size: 0.9em;
+        color: #7f8c8d;
+        line-height: 1.4;
+    }
+
+    .radio-group {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .radio-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: background-color 0.2s ease;
+    }
+
+    .radio-option:hover {
+        background-color: #f8f9fa;
+    }
+
+    .radio-option input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #3498db;
+        cursor: pointer;
+    }
+
+    .radio-option label {
+        cursor: pointer;
+        font-size: 0.95em;
+        color: #2c3e50;
+    }
+
+    .danger-zone {
+        background: #fff5f5;
+        border: 1px solid #fed7d7;
+        border-radius: 12px;
+        padding: 25px;
+        margin-top: 30px;
+    }
+
+    .danger-zone .section-title {
+        color: #e53e3e;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 40px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1em;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        min-width: 140px;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .btn-secondary {
+        background-color: #95a5a6;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #7f8c8d;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(149, 165, 166, 0.3);
+    }
+
+    .btn-danger {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background-color: #c0392b;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+    }
+
+    .success-message {
+        background-color: #d4edda;
+        color: #155724;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        border-left: 4px solid #28a745;
+    }
+
+    .profile-section {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .profile-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5em;
+        font-weight: 600;
+    }
+
+    .profile-info h3 {
+        color: #2c3e50;
+        font-size: 1.2em;
+        margin-bottom: 5px;
+    }
+
+    .profile-info p {
+        color: #7f8c8d;
+        font-size: 0.95em;
+    }
+
+    @media (max-width: 768px) {
+        .settings-wrapper {
+            padding: 20px 15px;
+        }
+        
+        .page-header h1 {
+            font-size: 2em;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn {
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .radio-group {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+    }
+</style>
+
+<div class="settings-wrapper">
+    <div class="page-header">
+        <h1>Account Settings</h1>
+        <p>Manage your account preferences and privacy settings</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="success-message">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+   <form method="post" action="{% url 'plpapp:user_settings' %}">
+    {% csrf_token %}
+    
+    <!-- Profile Section -->
+    <div class="settings-section">
+        <div class="section-title">
+            👤 Profile Information
+        </div>
+        <div class="profile-section">
+            <div class="profile-avatar">
+                {{ user.username.0|upper }}
+            </div>
+            <div class="profile-info">
+                <h3>{{ user.get_full_name|default:user.username }}</h3>
+                <p>{{ user.email }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Settings -->
+    <div class="settings-section">
+        <div class="section-title">
+            🔔 Notification Preferences
+        </div>
+        
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-label">Email Notifications</div>
+                <div class="setting-description">Receive email updates about your account activity</div>
+            </div>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" name="email_notifications" value="on" id="email_on"
+                        {% if settings.email_notifications %}checked{% endif %}>
+                    <label for="email_on">On</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" name="email_notifications" value="off" id="email_off"
+                        {% if not settings.email_notifications %}checked{% endif %}>
+                    <label for="email_off">Off</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-label">Push Notifications</div>
+                <div class="setting-description">Get notified about important updates and messages</div>
+            </div>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" name="push_notifications" value="on" id="push_on"
+                        {% if settings.push_notifications %}checked{% endif %}>
+                    <label for="push_on">On</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" name="push_notifications" value="off" id="push_off"
+                        {% if not settings.push_notifications %}checked{% endif %}>
+                    <label for="push_off">Off</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-label">Marketing Emails</div>
+                <div class="setting-description">Receive newsletters and promotional content</div>
+            </div>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" name="marketing_emails" value="on" id="marketing_on"
+                        {% if settings.marketing_emails %}checked{% endif %}>
+                    <label for="marketing_on">On</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" name="marketing_emails" value="off" id="marketing_off"
+                        {% if not settings.marketing_emails %}checked{% endif %}>
+                    <label for="marketing_off">Off</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Settings -->
+    <div class="settings-section">
+        <div class="section-title">
+            🔒 Privacy & Security
+        </div>
+        
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-label">Profile Visibility</div>
+                <div class="setting-description">Control who can see your profile information</div>
+            </div>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" name="profile_visibility" value="public" id="public"
+                        {% if settings.profile_visibility == 'public' %}checked{% endif %}>
+                    <label for="public">Public</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" name="profile_visibility" value="private" id="private"
+                        {% if settings.profile_visibility == 'private' %}checked{% endif %}>
+                    <label for="private">Private</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-label">Data Collection</div>
+                <div class="setting-description">Allow us to collect analytics data to improve our service</div>
+            </div>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" name="data_collection" value="allow" id="data_allow"
+                        {% if settings.data_collection == 'allow' %}checked{% endif %}>
+                    <label for="data_allow">Allow</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" name="data_collection" value="deny" id="data_deny"
+                        {% if settings.data_collection == 'deny' %}checked{% endif %}>
+                    <label for="data_deny">Deny</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-label">Two-Factor Authentication</div>
+                <div class="setting-description">Add an extra layer of security to your account</div>
+            </div>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" name="two_factor" value="enabled" id="2fa_on"
+                        {% if settings.two_factor == 'enabled' %}checked{% endif %}>
+                    <label for="2fa_on">Enabled</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" name="two_factor" value="disabled" id="2fa_off"
+                        {% if settings.two_factor == 'disabled' %}checked{% endif %}>
+                    <label for="2fa_off">Disabled</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <button type="submit" class="btn btn-primary">Save Settings</button>
+        <a href="{% url 'mainapp:logout' %}" class="btn btn-secondary">Sign Out</a>
+    </div>
+</form>
+
+{% if message %}
+  <p style="color: green;">{{ message }}</p>
+{% endif %}
+
+
+    <!-- Danger Zone -->
+    <div class="danger-zone">
+        <div class="section-title">
+            ⚠️ Danger Zone
+        </div>
+        <div class="setting-item">
+            <div class="setting-info">
+                <div class="setting-label">Delete Account</div>
+                <div class="setting-description">Permanently delete your account and all associated data. This action cannot be undone.</div>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <a href="{% url 'plpapp:delete_account' %}" class="btn btn-danger">Delete My Account</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add smooth interactions
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate sections on scroll
+        const sections = document.querySelectorAll('.settings-section, .danger-zone');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        sections.forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'all 0.6s ease';
+            observer.observe(section);
+        });
+
+        // Form submission feedback
+        const form = document.querySelector('form');
+        const saveButton = document.querySelector('.btn-primary');
+        
+        form.addEventListener('submit', function(e) {
+            saveButton.innerHTML = '💾 Saving...';
+            saveButton.style.background = '#27ae60';
+        });
+    });
+</script>
+
+{% endblock %}

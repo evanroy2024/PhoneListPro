@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Upload Questions{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="fw-bold">Upload Questions</h1>
+            <p class="text-muted">Import questions from a file or add them manually</p>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <ul class="mb-0 ps-3">
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- File Upload Card -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-cloud-upload me-2 text-primary"></i>Upload from File
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" class="mb-4">
+                        {% csrf_token %}
+                        
+                        <div class="upload-area p-4 mb-3 border border-dashed rounded-3 text-center bg-light">
+                            <i class="bi bi-file-earmark-text display-4 text-muted mb-3"></i>
+                            <p class="mb-3">Drag and drop your file here or</p>
+                            <div class="mb-3">
+                                <label class="btn btn-outline-primary" for="fileInput">
+                                    Choose File
+                                </label>
+                                <input type="file" id="fileInput" name="file" accept=".csv, .xlsx, .xls" style="display:none" onchange="document.getElementById('file-name').textContent = this.files[0].name">
+                            </div>
+                            <small id="file-name" class="text-muted"></small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-upload me-2"></i>Upload and Process
+                        </button>
+                    </form>
+                    
+                    <div class="bg-light rounded p-3">
+                        <h6 class="fw-bold"><i class="bi bi-info-circle me-2"></i>CSV Format</h6>
+                        <p class="mb-2 small">Your CSV file should have these columns:</p>
+                        <ul class="mb-0 small">
+                            <li><code>question_text</code> - The question content</li>
+                            <li><code>question_type</code> - One of: <code>mcq</code>, <code>text</code>, <code>yesno</code></li>
+                            <li><code>options</code> - For MCQs, separate options using <code>|</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Manual Entry Card -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pencil-square me-2 text-primary"></i>Add Manually
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="manualQuestionForm">
+                        <div class="mb-3">
+                            <label for="manual_question_text" class="form-label">Question Text</label>
+                            <textarea class="form-control" id="manual_question_text" rows="3" placeholder="Enter your question here" required></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="manual_question_type" class="form-label">Question Type</label>
+                            <select class="form-select" id="manual_question_type" onchange="toggleOptionsField()">
+                                <option value="mcq">Multiple Choice</option>
+                                <option value="text">Open Text</option>
+                                <option value="yesno">Yes/No</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4" id="optionsField">
+                            <label for="manual_options" class="form-label">Options</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="manual_options" placeholder="Red | Blue | Green">
+                                <button class="btn btn-outline-secondary" type="button" id="addOptionBtn">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted">Separate options with a pipe (|) character</small>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-success" onclick="addQuestion()">
+                                <i class="bi bi-plus-circle me-2"></i>Add Question
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recently Added Questions Section -->
+    <div class="mt-4">
+        <h5 class="mb-3">Recently Added Questions</h5>
+        <div class="table-responsive">
+            <table class="table table-hover" id="recentQuestionsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Question</th>
+                        <th>Type</th>
+                        <th>Options</th>
+                        <th>Added</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4" class="text-center py-3 text-muted">No questions added in this session</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle options field based on question type
+    function toggleOptionsField() {
+        const questionType = document.getElementById('manual_question_type').value;
+        const optionsField = document.getElementById('optionsField');
+        
+        if (questionType === 'mcq') {
+            optionsField.style.display = 'block';
+        } else {
+            optionsField.style.display = 'none';
+        }
+    }
+    
+    // Add a question via AJAX
+    function addQuestion() {
+        const questionText = document.getElementById('manual_question_text').value;
+        const questionType = document.getElementById('manual_question_type').value;
+        const optionsText = document.getElementById('manual_options').value;
+        
+        // Validation
+        if (!questionText.trim()) {
+            showAlert('Please enter a question text', 'danger');
+            return;
+        }
+        
+        if (questionType === 'mcq' && !optionsText.trim()) {
+            showAlert('Please enter at least one option for multiple choice questions', 'danger');
+            return;
+        }
+
+        const payload = {
+            question_text: questionText,
+            question_type: questionType,
+            options: optionsText.split('|').map(o => o.trim()).filter(Boolean)
+        };
+
+        // Show loading state
+        const addButton = document.querySelector('button[onclick="addQuestion()"]');
+        const originalText = addButton.innerHTML;
+        addButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+        addButton.disabled = true;
+
+        fetch("", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('Question added successfully!', 'success');
+                document.getElementById('manual_question_text').value = '';
+                document.getElementById('manual_options').value = '';
+                
+                // Add to recent questions table
+                addToRecentQuestions(payload);
+            } else {
+                showAlert('Error: ' + (data.error || 'Something went wrong.'), 'danger');
+            }
+        })
+        .catch(error => {
+            showAlert('Error: ' + error.message, 'danger');
+        })
+        .finally(() => {
+            // Restore button state
+            addButton.innerHTML = originalText;
+            addButton.disabled = false;
+        });
+    }
+    
+    // Display alert message
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        const container = document.querySelector('.container');
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            alertDiv.classList.remove('show');
+            setTimeout(() => alertDiv.remove(), 300);
+        }, 5000);
+    }
+    
+    // Add a question to the recent questions table
+    function addToRecentQuestions(question) {
+        const table = document.getElementById('recentQuestionsTable').getElementsByTagName('tbody')[0];
+        
+        // Clear "No questions" message if it exists
+        if (table.rows.length === 1 && table.rows[0].cells.length === 1) {
+            table.innerHTML = '';
+        }
+        
+        // Create new row
+        const row = table.insertRow(0);
+        
+        // Insert cells
+        const cell1 = row.insertCell(0);
+        const cell2 = row.insertCell(1);
+        const cell3 = row.insertCell(2);
+        const cell4 = row.insertCell(3);
+        
+        // Add data to cells
+        cell1.textContent = question.question_text;
+        
+        // Question type with badge
+        const typeMap = {
+            'mcq': { text: 'Multiple Choice', color: 'primary' },
+            'text': { text: 'Open Text', color: 'success' },
+            'yesno': { text: 'Yes/No', color: 'info' }
+        };
+        const type = typeMap[question.question_type] || { text: question.question_type, color: 'secondary' };
+        cell2.innerHTML = `<span class="badge bg-${type.color}">${type.text}</span>`;
+        
+        // Options
+        cell3.textContent = question.options.join(' | ') || '-';
+        
+        // Timestamp
+        const now = new Date();
+        cell4.innerHTML = `<span class="text-muted small">Just now</span>`;
+        
+        // Highlight new row
+        row.classList.add('table-active');
+        setTimeout(() => {
+            row.classList.remove('table-active');
+        }, 3000);
+    }
+    
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleOptionsField();
+        
+        // File upload improved UX
+        const uploadArea = document.querySelector('.upload-area');
+        
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.add('border-primary');
+        });
+        
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('border-primary');
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('border-primary');
+            
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length) {
+                document.getElementById('fileInput').files = files;
+                document.getElementById('file-name').textContent = files[0].name;
+            }
+        });
+    });
+</script>
+{% endblock %}

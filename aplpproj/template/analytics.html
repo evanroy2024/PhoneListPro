@@ -1,0 +1,1132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary: #6366f1;
+        --primary-light: #818cf8;
+        --primary-dark: #4f46e5;
+        --secondary: #64748b;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #06b6d4;
+        --light: #f8fafc;
+        --white: #ffffff;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background-color: var(--gray-50);
+        color: var(--gray-900);
+        line-height: 1.6;
+        font-weight: 400;
+    }
+
+    .navbar {
+        background-color: var(--white);
+        border-bottom: 1px solid var(--gray-200);
+        backdrop-filter: blur(20px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .sidebar {
+        background: var(--white);
+        color: var(--gray-700);
+        min-height: calc(100vh - 56px);
+        border-right: 1px solid var(--gray-200);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar .nav-link {
+        color: var(--gray-600);
+        padding: 0.875rem 1.25rem;
+        border-radius: 8px;
+        margin: 2px 8px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .sidebar .nav-link::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 3px;
+        background: var(--primary);
+        transform: scaleY(0);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 0 2px 2px 0;
+    }
+
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(129, 140, 248, 0.05) 100%);
+        color: var(--primary);
+        transform: translateX(2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .sidebar .nav-link:hover::before,
+    .sidebar .nav-link.active::before {
+        transform: scaleY(1);
+    }
+
+    .sidebar .nav-link i {
+        margin-right: 12px;
+        font-size: 1.1rem;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 20px;
+        text-align: center;
+    }
+
+    .sidebar .nav-link:hover i {
+        transform: scale(1.1);
+        color: var(--primary);
+    }
+
+    .card {
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        margin-bottom: 24px;
+        border: 1px solid var(--gray-200);
+        background: var(--white);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--gray-300);
+    }
+
+    .card-header {
+        background: var(--white);
+        border-bottom: 1px solid var(--gray-100);
+        font-weight: 600;
+        padding: 1.5rem;
+        color: var(--gray-800);
+        font-size: 1.125rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .stats-card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--gray-200);
+        border-left: 4px solid #1a62f1;
+        background: linear-gradient(135deg, var(--white) 0%, var(--gray-50) 100%);
+    }
+
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(129, 140, 248, 0.05) 100%);
+        border-radius: 50%;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .stats-card:hover::before {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+
+    .stats-card .icon {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        color: white;
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+        box-shadow: 0 8px 25px -8px var(--primary);
+        font-size: 1.375rem;
+        position: relative;
+        z-index: 2;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .stats-card:hover .icon {
+        transform: scale(1.05);
+        box-shadow: 0 12px 30px -8px var(--primary);
+    }
+
+    .summary-value {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        line-height: 1.2;
+        margin: 0.5rem 0;
+        position: relative;
+        z-index: 2;
+    }
+
+    .trend-positive {
+        color: var(--success);
+        font-weight: 500;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .trend-negative {
+        color: var(--danger);
+        font-weight: 500;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .dashboard-header {
+        background: var(--white);
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        margin-bottom: 24px;
+        border: 1px solid var(--gray-200);
+    }
+
+    .dashboard-header h4 {
+        color: var(--gray-900);
+        font-weight: 700;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .dashboard-header p {
+        color: var(--gray-500);
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .progress {
+        height: 6px;
+        margin-top: 12px;
+        border-radius: 6px;
+        overflow: hidden;
+        background-color: var(--gray-200);
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+        transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 6px;
+    }
+
+    .subscription-card {
+        border-left: 4px solid var(--success);
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border-color: var(--success);
+    }
+
+    .subscription-expired {
+        border-left: 4px solid var(--danger);
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border-color: var(--danger);
+    }
+
+    .table {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: none;
+    }
+
+    .table thead th {
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--gray-200);
+        color: var(--gray-700);
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 1rem;
+    }
+
+    .table tbody td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--gray-100);
+        vertical-align: middle;
+    }
+
+    .table-hover tbody tr {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: var(--gray-50);
+        transform: scale(1.002);
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .badge-blue {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        color: white;
+        box-shadow: 0 4px 14px -6px var(--primary);
+    }
+
+    .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        border-color: var(--primary);
+        box-shadow: 0 4px 14px -6px var(--primary);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 25px -8px var(--primary);
+    }
+
+    .btn-outline-primary {
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--primary);
+        transform: translateY(-1px);
+    }
+
+    .btn-outline-success {
+        color: var(--success);
+        border-color: var(--success);
+    }
+
+    .btn-outline-success:hover {
+        background: var(--success);
+        transform: translateY(-1px);
+    }
+
+    .btn-outline-danger {
+        color: var(--danger);
+        border-color: var(--danger);
+    }
+
+    .btn-outline-danger:hover {
+        background: var(--danger);
+        transform: translateY(-1px);
+    }
+
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid var(--gray-300);
+        padding: 0.5rem 0.75rem;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .chart-container {
+        position: relative;
+        height: 320px;
+        width: 100%;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--gray-200);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes countUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes progressFill {
+        from {
+            width: 0% !important;
+        }
+    }
+
+    .activity-item {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .activity-item:nth-child(1) {
+        animation: slideInRight 0.5s ease-out 0.1s both;
+    }
+
+    .activity-item:nth-child(2) {
+        animation: slideInRight 0.5s ease-out 0.2s both;
+    }
+
+    .activity-item:nth-child(3) {
+        animation: slideInRight 0.5s ease-out 0.3s both;
+    }
+
+    .activity-item:nth-child(4) {
+        animation: slideInRight 0.5s ease-out 0.4s both;
+    }
+
+    .activity-item:nth-child(5) {
+        animation: slideInRight 0.5s ease-out 0.5s both;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--gray-100);
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--gray-400);
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--gray-500);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .sidebar {
+            transform: translateX(-100%);
+            position: fixed;
+            z-index: 1000;
+            width: 280px;
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+
+        .dashboard-header {
+            padding: 1.5rem;
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 col-lg-2 px-0 sidebar animate__animated animate__slideInLeft">
+              <div class="d-flex flex-column p-3">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link active" href="{% url 'plpapp:dashboard' %}" active>
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link scroll-link" href="#" data-scroll="30">
+          <i class="fas fa-chart-line"></i>
+          <span>Analytics</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link scroll-link" href="#" data-scroll="75">
+          <i class="fas fa-poll"></i>
+          <span>Surveys</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link scroll-link" href="#" data-scroll="100">
+          <i class="fas fa-file-alt"></i>
+          <span>Plans</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'plpapp:view_profile' %}">
+          <i class="fas fa-user"></i>
+          <span>Profile</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'plpapp:help_center' %}">
+          <i class="fas fa-question-circle"></i>
+          <span>Help Center</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'plpapp:user_settings' %}">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+        </div>
+<script>
+    document.querySelectorAll('a.scroll-link').forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    const scrollPercent = parseFloat(this.dataset.scroll);
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollTo = (scrollPercent / 100) * scrollHeight;
+    window.scrollTo({ top: scrollTo, behavior: 'smooth' });
+  });
+});
+
+</script>
+        <!-- Main Content -->
+        <div class="col-md-10 col-lg-10 ms-auto px-4 py-3">
+            <!-- Header -->
+            <div class="dashboard-header animate__animated animate__fadeInDown">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-0">Survey Analytics Dashboard</h4>
+                        <p class="text-muted mb-0">Welcome back, {{ user.first_name|default:user.username }}! Here's
+                            your survey performance overview</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <form method="GET" class="d-inline-flex gap-2">
+                            <input type="date" name="start_date" class="form-control form-control-sm"
+                                value="{{ start_date }}">
+                            <input type="date" name="end_date" class="form-control form-control-sm"
+                                value="{{ end_date }}">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fas fa-filter me-1"></i> Filter
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+
+
+          <!-- Stats Row -->
+<div class="stats-container">
+    <div class="stat-box">
+        <div class="stat-content">
+            <div class="stat-icon">
+                <i class="fas fa-poll"></i>
+            </div>
+            <div class="stat-details">
+                <h6 class="stat-label">Total Surveys</h6>
+                <h2 class="stat-number">{{ total_surveys }}</h2>
+                <small class="stat-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>Total surveys</span>
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-content">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-details">
+                <h6 class="stat-label">Completed</h6>
+                <h2 class="stat-number">{{ completed_count }}</h2>
+                <small class="stat-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>{{ completion_rate }}%</span>
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-content">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-details">
+                <h6 class="stat-label">In Progress</h6>
+                <h2 class="stat-number">{{ pending_count }}</h2>
+                <small class="stat-trend positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>Active now</span>
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-content">
+            <div class="stat-icon">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="stat-details">
+                <h6 class="stat-label">Denied</h6>
+                <h2 class="stat-number">{{ denied_count }}</h2>
+                <small class="stat-trend neutral" style="color: rgb(218, 8, 8);">
+                    <i class="fas fa-minus"></i>
+                    <span >Rejected</span>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+            <!-- Charts Row -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card animate__animated animate__fadeInLeft">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Survey Activity Timeline</h5>
+                            <div class="loading-spinner d-none" id="chartLoader"></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="timelineChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card animate__animated animate__fadeInRight">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Status Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Surveys Table -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Your Recent Surveys</h5>
+                            <span class="badge badge-blue">{{ surveys.count }} Total</span>
+                        </div>
+                        <div class="card-body">
+                            {% if surveys %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Survey Title</th>
+                                            <th>Status</th>
+                                            <th>Created Date</th>
+                                            <th>Survey Date</th>
+                                            <th>Questions</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for survey in surveys|slice:":10" %}
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <strong class="d-block">{{ survey.title }}</strong>
+                                                    <small class="text-muted">{{ survey.description|truncatechars:50
+                                                        }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if survey.status == 'completed' %}
+                                                <span class="badge bg-success">Completed</span>
+                                                {% elif survey.status == 'in_progress' %}
+                                                <span class="badge bg-primary">In Progress</span>
+                                                {% else %}
+                                                <span class="badge bg-warning">Pending</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ survey.created_at|date:"M d, Y" }}</td>
+                                            <td>{{ survey.survey_date|date:"M d, Y" }}</td>
+                                            <td>
+                                                <span class="badge bg-info">{{ survey.questions.count }}
+                                                    Questions</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary btn-sm">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-success btn-sm">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger btn-sm">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-poll fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No surveys found</h5>
+                                <p class="text-muted">Create your first survey to get started!</p>
+                                <a href="#" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Create Survey
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscription Status -->
+            {% if subscription %}
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div
+                        class="card {% if subscription.is_active %}subscription-card{% else %}subscription-expired{% endif %} animate__animated animate__fadeInUp">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h5 class="mb-1">
+                                        <i class="fas fa-crown me-2"></i>
+                                        {% if subscription.plan %}{{ subscription.plan.name }} Plan{% else %}No Active
+                                        Plan{% endif %}
+                                    </h5>
+                                    <p class="mb-0 text-muted">
+                                        Status:
+                                        {% if subscription.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Expired</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    {% if subscription.expiration_date %}
+                                    <p class="mb-0">
+                                        <strong>Expires:</strong> {{ subscription.expiration_date|date:"M d, Y" }}
+                                    </p>
+                                    {% endif %}
+                                    <p class="mb-0">
+                                        <strong>Payment:</strong>
+                                        <span
+                                            class="badge {% if subscription.payment_status == 'completed' %}bg-success{% elif subscription.payment_status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ subscription.get_payment_status_display }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Animate counter numbers
+        function animateValue(element, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                element.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Start counter animations
+        document.querySelectorAll('.summary-value').forEach(element => {
+            const target = parseInt(element.getAttribute('data-target'));
+            animateValue(element, 0, target, 2000);
+        });
+
+        // Dynamic data from Django
+        const surveyData = [
+            {% for survey in surveys %}
+                {
+            title: "{{ survey.title|escapejs }}",
+            status: "{{ survey.status }}",
+            created: "{{ survey.created_at|date:'Y-m-d' }}",
+            survey_date: "{{ survey.survey_date|date:'Y-m-d' }}",
+            questions: {{ survey.questions.count }}
+                }{% if not forloop.last %}, {% endif %}
+    {% endfor %}
+            ];
+
+    // Timeline Chart
+    const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+
+    // Process data for timeline
+    const dates = [...new Set(surveyData.map(s => s.created))].sort();
+    const dailyCounts = dates.map(date => ({
+        date: date,
+        count: surveyData.filter(s => s.created === date).length
+    }));
+
+    const timelineChart = new Chart(timelineCtx, {
+        type: 'line',
+        data: {
+            labels: dailyCounts.map(d => new Date(d.date).toLocaleDateString()),
+            datasets: [{
+                label: 'Surveys Created',
+                data: dailyCounts.map(d => d.count),
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#6366f1',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 3,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: {
+                            family: 'Inter',
+                            size: 12,
+                            weight: '500'
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#f3f4f6',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        font: {
+                            family: 'Inter',
+                            size: 11
+                        },
+                        color: '#6b7280'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            family: 'Inter',
+                            size: 11
+                        },
+                        color: '#6b7280'
+                    }
+                }
+            },
+            animation: {
+                duration: 2000,
+                easing: 'easeInOutQuart'
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+
+    // Status Distribution Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+
+    const statusCounts = {
+        pending: surveyData.filter(s => s.status === 'pending').length,
+        in_progress: surveyData.filter(s => s.status === 'in_progress').length,
+        completed: surveyData.filter(s => s.status === 'completed').length
+    };
+
+    const statusChart = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pending', 'In Progress', 'Completed'],
+            datasets: [{
+                data: [statusCounts.pending, statusCounts.in_progress, statusCounts.completed],
+                backgroundColor: [
+                    '#f59e0b',
+                    '#6366f1',
+                    '#10b981'
+                ],
+                borderWidth: 0,
+                hoverOffset: 8,
+                hoverBorderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: {
+                            family: 'Inter',
+                            size: 12,
+                            weight: '500'
+                        }
+                    }
+                }
+            },
+            cutout: '65%',
+            animation: {
+                animateRotate: true,
+                duration: 2000
+            }
+        }
+    });
+
+    // Enhanced hover effects for cards
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('mouseenter', function () {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+        });
+
+        card.addEventListener('mouseleave', function () {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)';
+        });
+    });
+
+    // Enhanced button interactions
+    document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('mouseenter', function () {
+            if (!this.classList.contains('btn-outline-primary') &&
+                !this.classList.contains('btn-outline-success') &&
+                !this.classList.contains('btn-outline-danger')) {
+                this.style.transform = 'translateY(-1px)';
+            }
+        });
+
+        btn.addEventListener('mouseleave', function () {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Refresh charts periodically (every 30 seconds)
+    setInterval(() => {
+        timelineChart.update('none');
+        statusChart.update('none');
+    }, 30000);
+
+    // Add smooth scroll behavior
+    document.documentElement.style.scrollBehavior = 'smooth';
+
+    // Intersection Observer for animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe all cards for scroll animations
+    document.querySelectorAll('.card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        observer.observe(card);
+    });
+        });
+</script>
+
+<style>
+.stats-card {
+    position: relative;
+    z-index: 1;
+}
+.dropdown-menu {
+    z-index: 1060 !important;
+    position: absolute !important;
+}
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+.stat-box {
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    border-left: 4px solid #4f46e5;
+    padding: 30px 20px;
+    min-height: 155px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+.stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.stat-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #4f46e5;
+    background: #f0f9ff;
+}
+.stat-details {
+    flex: 1;
+}
+.stat-label {
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 5px 0;
+}
+.stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 5px 0;
+}
+.stat-trend {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.stat-trend.positive {
+    color: #10b981;
+}
+.stat-trend.neutral {
+    color: #6b7280;
+}
+</style>
+{% endblock content %}

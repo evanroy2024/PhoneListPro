@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Survey Guide - Master the Art of Data Collection{% endblock %}
+
+{% block content %}
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fafafa;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        
+        .notifications-container {
+            width: 80%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .page-title {
+            font-size: 32px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+        
+        .page-subtitle {
+            font-size: 16px;
+            color: #7f8c8d;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+        
+        .notification {
+            background: #ffffff;
+            border: 1px solid #e8ecef;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            padding: 28px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .notification:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+        
+        .notification::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .notification-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        
+        .notification-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+        
+        .notification-icon::after {
+            content: '🔔';
+            font-size: 20px;
+            filter: grayscale(100%) brightness(0) invert(1);
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 8px 0;
+            line-height: 1.3;
+        }
+        
+        .notification-meta {
+            font-size: 13px;
+            color: #95a5a6;
+            margin-bottom: 12px;
+        }
+        
+        .notification-body {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        
+        .notification-text {
+            flex: 1;
+        }
+        
+        .notification-desc {
+            font-size: 15px;
+            color: #34495e;
+            line-height: 1.6;
+            margin: 0;
+        }
+        
+        .notification-image {
+            flex-shrink: 0;
+            width: 150px;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .notification-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .notification-image:hover img {
+            transform: scale(1.05);
+        }
+        
+        .notification-actions {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #f8f9fa;
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-action {
+            padding: 8px 16px;
+            border: 1px solid #e8ecef;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #ffffff;
+            color: #7f8c8d;
+        }
+        
+        .btn-action:hover {
+            background: #f8f9fa;
+            border-color: #d3d9df;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+        
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #95a5a6;
+        }
+        
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #7f8c8d;
+        }
+        
+        .empty-desc {
+            font-size: 14px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        
+        
+        /* Modal Styles */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .image-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            animation: zoomIn 0.3s ease;
+        }
+        
+        .modal-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes zoomIn {
+            from { transform: scale(0.5); }
+            to { transform: scale(1); }
+        }
+        
+        @media (max-width: 768px) {
+            .notifications-container {
+                width: 95%;
+                padding: 20px 16px;
+            }
+            
+            .notification {
+                padding: 20px;
+                margin-bottom: 16px;
+            }
+            
+            .notification-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .notification-icon {
+                margin-right: 0;
+                margin-bottom: 16px;
+                align-self: flex-start;
+            }
+            
+            .notification-body {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .notification-image {
+                width: 100%;
+                height: 200px;
+            }
+            
+            .page-title {
+                font-size: 28px;
+            }
+        }
+    </style>
+
+    <div class="notifications-container">
+        <div class="page-header">
+            <h1 class="page-title">Notifications</h1>
+            <p class="page-subtitle">Stay updated with your latest notifications</p>
+        </div>
+
+        {% for notif in notifications %}
+            <div class="notification">
+                <div class="notification-header">
+                    <div class="notification-icon"></div>
+                    <div class="notification-content">
+                        <h2 class="notification-title">{{ notif.title }}</h2>
+                        <div class="notification-meta">
+                            {% if notif.created_at %}
+                                {{ notif.created_at|timesince }} ago
+                            {% else %}
+                                Just now
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="notification-body">
+                    <div class="notification-text">
+                        <div class="notification-desc">
+                            {{ notif.description }}
+                        </div>
+                    </div>
+                    {% if notif.image %}
+                        <div class="notification-image">
+                            <img src="{{ notif.image.url }}" alt="Notification Image" onclick="openModal(this.src)">
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h3 class="empty-title">No notifications yet</h3>
+                <p class="empty-desc">When you have new notifications, they'll appear here. Check back later!</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="image-modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <img id="modalImage" class="modal-image" src="" alt="Full size image">
+        </div>
+    </div>
+
+    <script>
+        function openModal(imageSrc) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.classList.add('active');
+            modalImg.src = imageSrc;
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+{% endblock content %}

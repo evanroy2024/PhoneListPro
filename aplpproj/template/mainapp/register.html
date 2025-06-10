@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elegant Register</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background elements */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .floating-shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shape-1 {
+            width: 200px;
+            height: 200px;
+            background: white;
+            border-radius: 50%;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 150px;
+            height: 150px;
+            background: white;
+            border-radius: 30%;
+            top: 70%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .shape-3 {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 20%;
+            top: 30%;
+            right: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(10deg);
+            }
+        }
+
+        /* Back button */
+        .back-button {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 1.8rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-right: 1rem;
+            line-height: 1;
+        }
+
+        .back-button:hover {
+            color: #764ba2;
+            transform: translateX(-3px);
+        }
+
+        /* Register container */
+        .register-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.8s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 1rem 0;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .register-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .register-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .register-subtitle {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 400;
+        }
+
+        /* Alert messages */
+        .alert {
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            color: #721c24;
+            padding: 0.8rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: none;
+            animation: fadeIn 0.5s ease-out;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form styling */
+        .form-outline {
+            position: relative;
+            margin-bottom: 1.2rem;
+        }
+
+        .form-label {
+            color: #333 !important;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            display: block;
+            font-size: 0.85rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.9rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-control::placeholder {
+            color: #999;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus::placeholder {
+            opacity: 0;
+            transform: translateX(10px);
+        }
+
+        /* Remember me and forgot password */
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+        }
+
+        .form-check-input {
+            margin-right: 0.4rem;
+            transform: scale(1.1);
+            accent-color: #667eea;
+        }
+
+        .form-check-label {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .forgot-password {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .forgot-password:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        /* Submit button */
+        .btn-primary {
+            width: 100%;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.2rem;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Sign in section */
+        .sign-in {
+            text-align: center;
+            padding-top: 1rem;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .sign-in p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sign-in-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .sign-in-link:hover {
+            color: #764ba2;
+            transform: translateY(-1px);
+        }
+
+        /* Loading animation for button */
+        .btn-loading {
+            pointer-events: none;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            body {
+                padding: 0.5rem;
+                align-items: flex-start;
+                padding-top: 2rem;
+            }
+
+            .register-container {
+                max-width: 100%;
+                padding: 1.5rem;
+                margin: 0;
+                border-radius: 15px;
+            }
+            
+            .register-title {
+                font-size: 1.8rem;
+            }
+
+            .back-button {
+                font-size: 1.5rem;
+                margin-right: 0.5rem;
+            }
+
+            .form-options {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.8rem;
+            }
+
+            .floating-shape {
+                opacity: 0.05;
+            }
+
+            .shape-1 {
+                width: 120px;
+                height: 120px;
+            }
+
+            .shape-2 {
+                width: 100px;
+                height: 100px;
+            }
+
+            .shape-3 {
+                width: 80px;
+                height: 80px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0.25rem;
+                padding-top: 1rem;
+            }
+
+            .register-container {
+                padding: 1.2rem;
+                border-radius: 12px;
+            }
+            
+            .register-title {
+                font-size: 1.6rem;
+            }
+
+            .back-button {
+                font-size: 1.3rem;
+                margin-right: 0.3rem;
+            }
+
+            .form-control {
+                padding: 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .form-label {
+                font-size: 0.8rem;
+            }
+
+            .btn-primary {
+                padding: 0.8rem;
+                font-size: 0.95rem;
+            }
+
+            .form-check-label,
+            .forgot-password {
+                font-size: 0.8rem;
+            }
+
+            .register-subtitle {
+                font-size: 0.85rem;
+            }
+
+            .sign-in p {
+                font-size: 0.85rem;
+            }
+
+            .sign-in-link {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .register-container {
+                padding: 1rem;
+            }
+
+            .register-title {
+                font-size: 1.4rem;
+            }
+
+            .form-outline {
+                margin-bottom: 1rem;
+            }
+
+            .form-options {
+                margin-bottom: 1.2rem;
+            }
+
+            .btn-primary {
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Landscape orientation on mobile */
+        @media (max-height: 600px) and (orientation: landscape) {
+            body {
+                align-items: flex-start;
+                padding-top: 1rem;
+            }
+
+            .register-container {
+                margin: 0.5rem 0;
+            }
+
+            .register-header {
+                margin-bottom: 1rem;
+            }
+
+            .form-outline {
+                margin-bottom: 0.8rem;
+            }
+
+            .form-options {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="bg-animation">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+    </div>
+
+    <!-- Register container -->
+    <div class="register-container">
+        <div class="register-header">
+            <div class="header-top">
+                <a href="{% url 'mainapp:home' %}" class="back-button" >←</a>
+                <h1 class="register-title">Create Account</h1>
+            </div>
+            <p class="register-subtitle">Join us today and get started</p>
+        </div>
+
+        <form method="POST" id="registerForm">
+            <!-- CSRF Token (Django template tag) -->
+            {% csrf_token %}
+            
+            <!-- Display Messages -->
+            {% for message in messages %}
+            <div class="alert alert-warning">{{ message }}</div>
+            {% endfor %}
+        
+            <!-- Username Input -->
+            <div class="form-outline">
+                <label class="form-label" for="username">Enter Name</label>
+                <input type="text" id="username" name="username" placeholder="Username" class="form-control form-control-lg" required />
+            </div>
+        
+            <!-- Email Input -->
+            <div class="form-outline">
+                <label class="form-label" for="email">Email address</label>
+                <input type="email" id="email" name="email" placeholder="Email" class="form-control form-control-lg" required />
+            </div>
+        
+            <!-- Password Input -->
+            <div class="form-outline">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" class="form-control form-control-lg" required />
+            </div>
+        
+            <!-- Remember Me & Forgot Password -->
+            <div class="form-options">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="rememberMe" checked />
+                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                </div>
+                <a href="{% url 'mainapp:forgot_password' %}" class="forgot-password">Forgot password?</a>
+            </div>
+        
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary" id="submitBtn">Sign Up</button>
+        </form>
+
+        <!-- Sign In Section -->
+        <div class="sign-in">
+            <p>Already have an account?</p>
+            <a href="{% url 'mainapp:login' %}" class="sign-in-link">Sign in here</a>
+        </div>
+    </div>
+
+    <script>
+        // Add smooth interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('registerForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const inputs = document.querySelectorAll('.form-control');
+
+            // Add focus and blur effects to inputs
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'translateY(-2px)';
+                });
+
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'translateY(0)';
+                });
+
+                // Add typing animation
+                input.addEventListener('input', function() {
+                    if (this.value.length > 0) {
+                        this.style.background = 'rgba(102, 126, 234, 0.05)';
+                    } else {
+                        this.style.background = 'rgba(255, 255, 255, 0.8)';
+                    }
+                });
+            });
+
+            // Add form submission animation
+            form.addEventListener('submit', function(e) {
+                submitBtn.classList.add('btn-loading');
+                submitBtn.textContent = '';
+                
+                // Remove loading state after 2 seconds (for demo purposes)
+                setTimeout(() => {
+                    submitBtn.classList.remove('btn-loading');
+                    submitBtn.textContent = 'Sign Up';
+                }, 2000);
+            });
+
+            // Add entrance animation for form elements
+            const formElements = document.querySelectorAll('.form-outline, .form-options, .btn-primary, .sign-in');
+            formElements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    element.style.transition = 'all 0.6s ease';
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, 200 + (index * 100));
+            });
+        });
+
+        // Add particle effect on button click
+        function createParticle(x, y) {
+            const particle = document.createElement('div');
+            particle.style.position = 'absolute';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.width = '6px';
+            particle.style.height = '6px';
+            particle.style.background = '#667eea';
+            particle.style.borderRadius = '50%';
+            particle.style.pointerEvents = 'none';
+            particle.style.zIndex = '1000';
+            document.body.appendChild(particle);
+
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = Math.random() * 100 + 50;
+            let opacity = 1;
+
+            function animate() {
+                const newX = parseFloat(particle.style.left) + Math.cos(angle) * 2;
+                const newY = parseFloat(particle.style.top) + Math.sin(angle) * 2;
+                opacity -= 0.02;
+
+                particle.style.left = newX + 'px';
+                particle.style.top = newY + 'px';
+                particle.style.opacity = opacity;
+
+                if (opacity > 0) {
+                    requestAnimationFrame(animate);
+                } else {
+                    document.body.removeChild(particle);
+                }
+            }
+            animate();
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            for (let i = 0; i < 12; i++) {
+                setTimeout(() => {
+                    createParticle(
+                        rect.left + Math.random() * rect.width,
+                        rect.top + Math.random() * rect.height
+                    );
+                }, i * 50);
+            }
+        });
+    </script>
+</body>
+</html>

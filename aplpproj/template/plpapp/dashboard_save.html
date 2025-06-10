@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey Analytics Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+       :root {
+    --primary: #2563eb;       /* Strong but not harsh blue */
+    --secondary: #1d4ed8;     /* Slightly deeper for contrast */
+    --info: #0ea5e9;          /* Bright cyan for highlights/info */
+    --light-blue: #bfdbfe;    /* Soft light blue for backgrounds */
+    --indigo: #4f46e5;        /* Rich indigo, still readable */
+    --navy: #334155;          /* Muted navy for text on light bg */
+    --white: #f9fafb;         /* Softer white to reduce glare */
+}
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .navbar {
+            background-color: var(--navy);
+        }
+        
+        .sidebar {
+            background-color: var(--navy);
+            color: var(--white);
+            min-height: calc(100vh - 56px);
+        }
+        
+        .sidebar .nav-link {
+            color: var(--white);
+            padding: 0.75rem 1rem;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid var(--info);
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        
+        .card-header {
+            background-color: var(--white);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+            padding: 1rem;
+        }
+        
+        .stats-card {
+            border-left: 4px solid var(--primary);
+        }
+        
+        .stats-card .icon {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .trend-positive {
+            color: #20c997;
+        }
+        
+        .trend-negative {
+            color: #dc3545;
+        }
+        
+        .dashboard-header {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .progress {
+            height: 8px;
+            margin-top: 8px;
+        }
+        
+        .progress-bar {
+            background-color: var(--primary);
+        }
+        
+        .user-activity {
+            height: 410px;
+            overflow-y: auto;
+        }
+        
+        .activity-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .badge-blue {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .badge-indigo {
+            background-color: var(--indigo);
+            color: white;
+        }
+        
+        .badge-info {
+            background-color: var(--info);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <i class="fas fa-chart-pie me-2"></i>
+                <span class="fw-bold">SurveyAnalytics</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-cog"></i></a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i> Admin
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 col-lg-2 px-0 sidebar">
+                <div class="d-flex flex-column p-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">
+                                <i class="fas fa-home"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-poll"></i> Surveys
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-chart-bar"></i> Reports
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-users"></i> Respondents
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-bullseye"></i> Campaigns
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 col-lg-10 ms-auto px-4 py-3">
+                <div class="dashboard-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4 class="mb-0">Survey Analytics Dashboard</h4>
+                            <p class="text-muted mb-0">Overview of all survey performance and metrics</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                    This Month <i class="fas fa-calendar ms-2"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#">Today</a></li>
+                                    <li><a class="dropdown-item" href="#">This Week</a></li>
+                                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                                    <li><a class="dropdown-item" href="#">Last 3 Months</a></li>
+                                    <li><a class="dropdown-item" href="#">Custom Range</a></li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-primary ms-2"><i class="fas fa-download me-1"></i> Export</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card stats-card">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="icon me-3">
+                                    <i class="fas fa-poll"></i>
+                                </div>
+                                <div>
+                                    <h6 class="card-title text-muted mb-0">Total Surveys</h6>
+                                    <h2 class="mb-0">42</h2>
+                                    <small class="trend-positive"><i class="fas fa-arrow-up"></i> 8% from last month</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stats-card">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="icon me-3">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div>
+                                    <h6 class="card-title text-muted mb-0">Respondents</h6>
+                                    <h2 class="mb-0">8,549</h2>
+                                    <small class="trend-positive"><i class="fas fa-arrow-up"></i> 12% from last month</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stats-card">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="icon me-3">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div>
+                                    <h6 class="card-title text-muted mb-0">Completion Rate</h6>
+                                    <h2 class="mb-0">78%</h2>
+                                    <small class="trend-positive"><i class="fas fa-arrow-up"></i> 5% from last month</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card stats-card">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="icon me-3">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div>
+                                    <h6 class="card-title text-muted mb-0">Avg. Time to Complete</h6>
+                                    <h2 class="mb-0">4:35</h2>
+                                    <small class="trend-negative"><i class="fas fa-arrow-down"></i> 2% from last month</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">Survey Responses Over Time</h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        Last 30 Days
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#">Last 7 Days</a></li>
+                                        <li><a class="dropdown-item" href="#">Last 30 Days</a></li>
+                                        <li><a class="dropdown-item" href="#">Last Quarter</a></li>
+                                        <li><a class="dropdown-item" href="#">Year to Date</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="responsesChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Response Distribution</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="distributionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Charts Row -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Demographic Breakdown</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="demographicChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Device Usage</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="deviceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">Recent Activity</h5>
+                                <a href="#" class="text-decoration-none">View All</a>
+                            </div>
+                            <div class="card-body user-activity">
+                                <div class="activity-item d-flex align-items-center">
+                                    <span class="badge rounded-pill badge-blue me-2">New</span>
+                                    <div>
+                                        <p class="mb-0"><strong>Customer Satisfaction Survey</strong> received 24 new responses</p>
+                                        <small class="text-muted">35 minutes ago</small>
+                                    </div>
+                                </div>
+                                <div class="activity-item d-flex align-items-center">
+                                    <span class="badge rounded-pill badge-indigo me-2">Update</span>
+                                    <div>
+                                        <p class="mb-0"><strong>Product Feedback</strong> survey has been updated</p>
+                                        <small class="text-muted">2 hours ago</small>
+                                    </div>
+                                </div>
+                                <div class="activity-item d-flex align-items-center">
+                                    <span class="badge rounded-pill badge-info me-2">Complete</span>
+                                    <div>
+                                        <p class="mb-0"><strong>Website Usability</strong> survey completed</p>
+                                        <small class="text-muted">5 hours ago</small>
+                                    </div>
+                                </div>
+                                <div class="activity-item d-flex align-items-center">
+                                    <span class="badge rounded-pill badge-blue me-2">New</span>
+                                    <div>
+                                        <p class="mb-0"><strong>Employee Engagement</strong> survey received 15 new responses</p>
+                                        <small class="text-muted">Yesterday</small>
+                                    </div>
+                                </div>
+                                <div class="activity-item d-flex align-items-center">
+                                    <span class="badge rounded-pill badge-info me-2">Complete</span>
+                                    <div>
+                                        <p class="mb-0"><strong>Market Research</strong> survey completed</p>
+                                        <small class="text-muted">Yesterday</small>
+                                    </div>
+                                </div>
+                                <div class="activity-item d-flex align-items-center">
+                                    <span class="badge rounded-pill badge-indigo me-2">Update</span>
+                                    <div>
+                                        <p class="mb-0"><strong>Software Evaluation</strong> survey has been updated</p>
+                                        <small class="text-muted">2 days ago</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Surveys Section -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">Top Performing Surveys</h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        Sort By: Response Rate
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#">Response Rate</a></li>
+                                        <li><a class="dropdown-item" href="#">Completion Rate</a></li>
+                                        <li><a class="dropdown-item" href="#">Total Responses</a></li>
+                                        <li><a class="dropdown-item" href="#">Date Created</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Survey Name</th>
+                                                <th>Status</th>
+                                                <th>Responses</th>
+                                                <th>Completion Rate</th>
+                                                <th>Avg. Time</th>
+                                                <th>Created</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Customer Satisfaction</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>2,452</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="me-2">85%</span>
+                                                        <div class="progress flex-grow-1">
+                                                            <div class="progress-bar" role="progressbar" style="width: 85%"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>3:25</td>
+                                                <td>Apr 12, 2025</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Product Feedback</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>1,863</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="me-2">79%</span>
+                                                        <div class="progress flex-grow-1">
+                                                            <div class="progress-bar" role="progressbar" style="width: 79%"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>5:12</td>
+                                                <td>Apr 3, 2025</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Website Usability</td>
+                                                <td><span class="badge bg-primary">Completed</span></td>
+                                                <td>1,254</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="me-2">92%</span>
+                                                        <div class="progress flex-grow-1">
+                                                            <div class="progress-bar" role="progressbar" style="width: 92%"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>4:05</td>
+                                                <td>Mar 28, 2025</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Employee Engagement</td>
+                                                <td><span class="badge bg-success">Active</span></td>
+                                                <td>876</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="me-2">68%</span>
+                                                        <div class="progress flex-grow-1">
+                                                            <div class="progress-bar" role="progressbar" style="width: 68%"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>8:32</td>
+                                                <td>Mar 15, 2025</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Market Research</td>
+                                                <td><span class="badge bg-primary">Completed</span></td>
+                                                <td>1,035</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="me-2">74%</span>
+                                                        <div class="progress flex-grow-1">
+                                                            <div class="progress-bar" role="progressbar" style="width: 74%"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>6:45</td>
+                                                <td>Mar 8, 2025</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        // Initialize all charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Line Chart - Responses Over Time
+            const responsesCtx = document.getElementById('responsesChart').getContext('2d');
+            const responsesChart = new Chart(responsesCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mar 23', 'Mar 24', 'Mar 25', 'Mar 26', 'Mar 27', 'Mar 28', 'Mar 29', 'Mar 30', 
+                             'Mar 31', 'Apr 1', 'Apr 2', 'Apr 3', 'Apr 4', 'Apr 5', 'Apr 6', 'Apr 7', 
+                             'Apr 8', 'Apr 9', 'Apr 10', 'Apr 11', 'Apr 12', 'Apr 13', 'Apr 14', 'Apr 15',
+                             'Apr 16', 'Apr 17', 'Apr 18', 'Apr 19', 'Apr 20', 'Apr 21'],
+                    datasets: [
+                        {
+                            label: 'Total Responses',
+                            data: [145, 132, 151, 184, 172, 153, 139, 183, 195, 207, 216, 241, 246, 
+                                   230, 245, 264, 270, 255, 238, 277, 293, 302, 316, 325, 341, 356, 
+                                   334, 352, 363, 372],
+                            borderColor: '#4361ee',
+                            backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Completed Surveys',
+                            data: [112, 105, 128, 154, 145, 132, 120, 156, 172, 175, 184, 205, 213, 
+                                   198, 210, 235, 241, 222, 198, 237, 253, 270, 280, 298, 312, 327, 
+                                   300, 321, 330, 340],
+                            borderColor: '#3a0ca3',
+                            backgroundColor: 'rgba(58, 12, 163, 0.05)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Donut Chart - Response Distribution
+            const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+            const distributionChart = new Chart(distributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Partial', 'Abandoned'],
+                    datasets: [{
+                        data: [78, 15, 7],
+                        backgroundColor: ['#4361ee', '#4cc9f0', '#e9ecef'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // Bar Chart - Demographics
+            const demographicCtx = document.getElementById('demographicChart').getContext('2d');
+            const demographicChart = new Chart(demographicCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['18-24', '25-34', '35-44', '45-54', '55+'],
+                    datasets: [{
+                        label: 'Age Distribution',
+                        data: [15, 32, 27, 18, 8],
+                        backgroundColor: [
+                            'rgba(67, 97, 238, 0.7)',
+                            'rgba(67, 97, 238, 0.8)',
+                            'rgba(67, 97, 238, 0.9)',
+                            'rgba(67, 97, 238, 0.7)',
+                            'rgba(67, 97, 238, 0.6)'
+                        ],
+                        borderRadius: 4,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Pie Chart - Device Usage
+            const deviceCtx = document.getElementById('deviceChart').getContext('2d');
+            const deviceChart = new Chart(deviceCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Mobile', 'Desktop', 'Tablet'],
+                    datasets: [{
+                        data: [58, 32, 10],
+                        backgroundColor: ['#4361ee', '#3f37c9', '#4cc9f0'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Your Profile{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="card-header bg-gradient-primary text-white p-4 border-0">
+                    <div class="d-flex align-items-center">
+                        <h1 class="h3 mb-0 fw-bold">Your Profile</h1>
+                        <div class="ms-auto">
+                            <a href="{% url 'plpapp:edit_profile' %}" class="btn btn-sm btn-light">
+                                <i class="bi bi-pencil me-1"></i>Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="row g-0">
+                        <!-- Profile Sidebar -->
+                        <div class="col-md-4 bg-light">
+                            <div class="p-4 text-center">
+                                <div class="profile-pic-wrapper mb-4">
+                                    <img src="{{ user_profile.profile_picture.url }}" alt="Profile Picture" 
+                                         class="rounded-circle img-thumbnail shadow-sm" 
+                                         style="width: 180px; height: 180px; object-fit: cover;">
+                                </div>
+                                <h4 class="fw-bold mb-1">{{ user_profile.first_name }} {{ user_profile.last_name }}</h4>
+                                <p class="text-muted small mb-3">@{{ user_profile.user.username }}</p>
+                                
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'plpapp:change_email' %}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-envelope me-1"></i>Change Email
+                                    </a>
+                                    <a href="{% url 'plpapp:reset_password' %}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-lock me-1"></i>Reset Password
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Profile Details -->
+                        <div class="col-md-8">
+                            <div class="p-4">
+                                <h5 class="fw-bold mb-4 text-primary border-bottom pb-3">
+                                    <i class="bi bi-person-badge me-2"></i>Personal Information
+                                </h5>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-sm-4">
+                                        <p class="text-muted mb-0">Full Name</p>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <p class="fw-medium mb-0">{{ user_profile.first_name }} {{ user_profile.last_name }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-sm-4">
+                                        <p class="text-muted mb-0">Email Address</p>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <p class="fw-medium mb-0">{{ user_profile.user.email }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-sm-4">
+                                        <p class="text-muted mb-0">Phone Number</p>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <p class="fw-medium mb-0">{{ user_profile.phone }}</p>
+                                    </div>
+                                </div>
+                                
+                                <h5 class="fw-bold mb-4 mt-5 text-primary border-bottom pb-3">
+                                    <i class="bi bi-geo-alt me-2"></i>Address Information
+                                </h5>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-sm-4">
+                                        <p class="text-muted mb-0">Street</p>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <p class="fw-medium mb-0">{{ user_profile.street }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-sm-4">
+                                        <p class="text-muted mb-0">City</p>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <p class="fw-medium mb-0">{{ user_profile.city }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-4">
+                                    <div class="col-sm-4">
+                                        <p class="text-muted mb-0">State</p>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <p class="fw-medium mb-0">{{ user_profile.state }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <p class="text-muted mb-0">Zip Code</p>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <p class="fw-medium mb-0">{{ user_profile.zipcode }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-white border-top py-3 px-4">
+                    <div class="text-end">
+                        <a href="#" class="btn btn-link text-muted">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #3a7bd5, #2e5d9f);
+    }
+    
+    .profile-pic-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .profile-pic-wrapper::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 50%;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+        pointer-events: none;
+    }
+    
+    .btn-outline-secondary {
+        border-color: #d9d9e3;
+        color: #495057;
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: #f8f9fa;
+        color: #2e5d9f;
+        border-color: #2e5d9f;
+    }
+    
+    .text-primary {
+        color: #3a7bd5 !important;
+    }
+    
+    .btn-primary {
+        background-color: #3a7bd5;
+        border-color: #3a7bd5;
+    }
+    
+    .btn-primary:hover {
+        background-color: #2e5d9f;
+        border-color: #2e5d9f;
+    }
+</style>
+{% endblock %}

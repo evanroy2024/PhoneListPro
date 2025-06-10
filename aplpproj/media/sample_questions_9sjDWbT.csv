@@ -1,0 +1,4 @@
+question_text,question_type,options
+What is your favorite color?,mcq,Red|Blue|Green|Yellow
+Tell us about yourself,text,
+Do you like Python?,yesno,

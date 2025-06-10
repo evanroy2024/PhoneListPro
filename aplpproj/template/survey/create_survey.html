@@ -1,0 +1,1675 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="survey-container">
+  <div class="survey-header">
+    <h1>Create New Survey</h1>
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress" id="form-progress"></div>
+      </div>
+      <div class="steps">
+        <div class="step active" data-step="1">Basic Info</div>
+        <div class="step" data-step="2">Questions</div>
+        <div class="step" data-step="3">Contacts</div>
+        <div class="step" data-step="4">Polltakers</div>
+        <div class="step" data-step="5">Confirm</div>
+      </div>
+    </div>
+  </div>
+
+  <form method="POST" id="survey-form">
+    {% csrf_token %}
+    
+    <!-- Tab 1: Basic Information -->
+    <div class="tab-content active" id="tab-1">
+      <div class="form-group">
+        <label for="title">Survey Title</label>
+        <input type="text" id="title" name="title" placeholder="Enter survey title" required>
+      </div>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" placeholder="Describe your survey" rows="4" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="survey_date">Survey Date</label>
+        <input type="date" id="survey_date" name="survey_date" required>
+      </div>
+    </div>
+    
+    <!-- Tab 2: Questions -->
+    <div class="tab-content" id="tab-2">
+      <div class="form-group">
+        <h2>Select Questions</h2>
+        <div class="search-box">
+          <input type="text" id="question-search" placeholder="Search questions...">
+        </div>
+        <div class="selection-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="checkbox-col"><input type="checkbox" id="select-all-questions"></th>
+                <th>Question Text</th>
+                <th>Type</th>
+                <th>Required</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for q in questions %}
+              <tr class="question-row">
+                <td><input type="checkbox" name="questions" value="{{ q.id }}"></td>
+                <td>{{ q.question_text }}</td>
+                <td>{{ q.question_type }}</td>
+                <td>{{ q.is_required|yesno:"Yes,No" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tab 3: Contacts with Pagination and Filters -->
+    <div class="tab-content" id="tab-3">
+      <div class="form-group">
+        <h2>Select Contacts</h2>
+        
+        <!-- Enhanced Filter Section -->
+        <div class="filters-section">
+          <div class="filters-toggle">
+            <button type="button" class="btn filter-btn" id="toggle-filters">
+              <i class="fas fa-filter"></i> Filters
+            </button>
+          </div>
+          
+          <div class="filters-container" id="filters-container">
+            <div class="filter-row">
+              <div class="filter-col">
+                <label for="first-name-filter">First Name</label>
+                <input type="text" id="first-name-filter" placeholder="First name">
+              </div>
+              <div class="filter-col">
+                <label for="last-name-filter">Last Name</label>
+                <input type="text" id="last-name-filter" placeholder="Last name">
+              </div>
+            </div>
+            
+            <div class="filter-row">
+              <div class="filter-col">
+                <label for="city-filter">City</label>
+                <input type="text" id="city-filter" placeholder="City">
+              </div>
+              <div class="filter-col">
+                <label for="state-filter">State</label>
+                <input type="text" id="state-filter" placeholder="State">
+              </div>
+            </div>
+            
+            <div class="filter-row">
+              <div class="filter-col">
+                <label for="zipcode-start">Zipcode Range</label>
+                <div class="zip-range-container">
+                  <input type="text" id="zipcode-start" placeholder="Start zipcode">
+                  <span class="zip-separator">to</span>
+                  <input type="text" id="zipcode-end" placeholder="End zipcode">
+                </div>
+              </div>
+              <div class="filter-col">
+                <label for="address-filter">Address</label>
+                <input type="text" id="address-filter" placeholder="Address">
+              </div>
+            </div>
+            
+            <div class="filter-actions">
+              <button type="button" class="btn apply-filter-btn" id="apply-filters">Apply Filters</button>
+              <button type="button" class="btn clear-filter-btn" id="clear-filters">Clear Filters</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Search Box -->
+        <div class="search-box">
+          <input type="text" id="contact-search" placeholder="Search contacts...">
+        </div>
+        
+        <!-- Selection Table with Pagination -->
+        <div class="selection-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="checkbox-col"><input type="checkbox" id="select-all-contacts"></th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Zipcode</th>
+              </tr>
+            </thead>
+            <tbody id="contacts-table-body">
+              {% for c in contacts %}
+              <tr class="contact-row">
+                <td><input type="checkbox" name="contacts" value="{{ c.id }}"></td>
+                <td>{{ c.first_name }} {{ c.last_name }}</td>
+                <td>{{ c.email }}</td>
+                <td>{{ c.phone }}</td>
+                <td>{{ c.address }}</td>
+                <td>{{ c.city }}</td>
+                <td>{{ c.state }}</td>
+                <td>{{ c.zipcode }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div class="pagination-controls">
+          <div class="pagination-info">
+            <span id="pagination-status">Showing <span id="showing-start">1</span>-<span id="showing-end">10</span> of <span id="total-contacts">100</span> contacts</span>
+          </div>
+          <div class="pagination-buttons">
+            <button type="button" class="btn pagination-btn" id="first-page" title="First Page">
+              <i class="fas fa-angle-double-left"></i>
+            </button>
+            <button type="button" class="btn pagination-btn" id="prev-page" title="Previous Page">
+              <i class="fas fa-angle-left"></i>
+            </button>
+            <span class="page-indicator">Page <span id="current-page">1</span> of <span id="total-pages">10</span></span>
+            <button type="button" class="btn pagination-btn" id="next-page" title="Next Page">
+              <i class="fas fa-angle-right"></i>
+            </button>
+            <button type="button" class="btn pagination-btn" id="last-page" title="Last Page">
+              <i class="fas fa-angle-double-right"></i>
+            </button>
+          </div>
+          <div class="page-size-selector">
+            <label for="page-size">Show:</label>
+            <select id="page-size">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tab 4: Polltakers -->
+    <div class="tab-content" id="tab-4">
+      <div class="form-group">
+        <h2>Assign Polltakers</h2>
+        <div class="search-box">
+          <input type="text" id="polltaker-search" placeholder="Search polltakers...">
+        </div>
+        <div class="selection-table">
+          <table>
+            <thead>
+              <tr>
+                <th class="checkbox-col"><input type="checkbox" id="select-all-polltakers"></th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Department</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in polltakers %}
+              <tr class="polltaker-row">
+                <td><input type="checkbox" name="polltakers" value="{{ p.id }}"></td>
+                <td>{{ p.name }}</td>
+                <td>{{ p.role }}</td>
+                <td>{{ p.department }}</td>
+                <td>{{ p.status }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tab 5: Simplified Confirmation -->
+    <div class="tab-content" id="tab-5">
+      <div class="confirmation-box">
+        <h2>Confirm Survey Details</h2>
+        <div class="summary-section">
+          <div class="summary-card">
+            <div class="summary-icon">
+              <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div class="summary-content">
+              <h3>Survey Details</h3>
+              <p><strong>Title:</strong> <span id="summary-title"></span></p>
+              <p><strong>Description:</strong> <span id="summary-description"></span></p>
+              <p><strong>Date:</strong> <span id="summary-date"></span></p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="summary-stats">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-question-circle"></i>
+            </div>
+            <div class="stat-number" id="summary-questions-count">0</div>
+            <div class="stat-label">Questions</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-address-book"></i>
+            </div>
+            <div class="stat-number" id="summary-contacts-count">0</div>
+            <div class="stat-label">Contacts</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-number" id="summary-polltakers-count">0</div>
+            <div class="stat-label">Polltakers</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Navigation buttons -->
+    <div class="form-navigation">
+      <button type="button" class="btn back-btn" id="prevBtn" disabled>
+        <i class="fas fa-arrow-left"></i> Back
+      </button>
+      <button type="button" class="btn next-btn" id="nextBtn">
+        Next <i class="fas fa-arrow-right"></i>
+      </button>
+      <button type="submit" class="btn submit-btn" id="submitBtn" style="display: none;">
+        <i class="fas fa-check-circle"></i> Create Survey
+      </button>
+    </div>
+  </form>
+</div>
+
+<style>
+  /* Base Styles */
+  .survey-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .survey-header {
+    margin-bottom: 40px;
+    text-align: center;
+  }
+  
+  .survey-header h1 {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-weight: 600;
+    font-size: 32px;
+  }
+  
+  /* Progress Bar */
+  .progress-container {
+    margin-bottom: 40px;
+    position: relative;
+  }
+  
+  .progress-bar {
+    width: 100%;
+    height: 10px;
+    background-color: #e9ecef;
+    border-radius: 20px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .progress {
+    height: 100%;
+    background: linear-gradient(90deg, #4481eb, #04befe);
+    width: 20%;
+    transition: width 0.5s ease;
+    border-radius: 20px;
+  }
+  
+  .steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+  }
+  
+  .step {
+    font-size: 14px;
+    color: #95a5a6;
+    position: relative;
+    text-align: center;
+    flex: 1;
+    padding: 0 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .step.active {
+    color: #4481eb;
+    font-weight: 600;
+    transform: scale(1.05);
+  }
+  
+  .step.completed {
+    color: #2ecc71;
+  }
+  
+  .step:before {
+    content: '';
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 18px;
+    background-color: #e9ecef;
+    border-radius: 50%;
+    z-index: 1;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .step.active:before {
+    background-color: #4481eb;
+  }
+  
+  .step.completed:before {
+    background-color: #2ecc71;
+  }
+  
+  /* Form Elements */
+  .form-group {
+    margin-bottom: 25px;
+  }
+  
+  .form-group h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #2c3e50;
+  }
+  
+  input[type="text"],
+  input[type="date"],
+  textarea,
+  select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #dbe0e5;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s;
+    color: #2c3e50;
+    background-color: #f8f9fa;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  
+  input[type="text"]:focus,
+  input[type="date"]:focus,
+  textarea:focus,
+  select:focus {
+    border-color: #4481eb;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(68, 129, 235, 0.1);
+    background-color: #fff;
+  }
+  
+  /* Tab Content */
+  .tab-content {
+    display: none;
+    animation: fadeInUp 0.5s;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Filters Section */
+  .filters-section {
+    margin-bottom: 20px;
+    border: 1px solid #eaedf1;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .filters-toggle {
+    padding: 12px 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eaedf1;
+  }
+  
+  .filter-btn {
+    background-color: #f8f9fa;
+    color: #2c3e50;
+    border: 1px solid #dbe0e5;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .filter-btn:hover {
+    background-color: #e9ecef;
+  }
+  
+  .filters-container {
+    padding: 15px;
+    background-color: #fcfcfd;
+    display: none;
+  }
+  
+  .filter-row {
+    display: flex;
+    margin-bottom: 15px;
+    gap: 15px;
+  }
+  
+  .filter-col {
+    flex: 1;
+  }
+  
+  .zip-range-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .zip-separator {
+    font-weight: 500;
+    color: #6c757d;
+  }
+  
+  .filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  
+  .apply-filter-btn {
+    background-color: #4481eb;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+  }
+  
+  .apply-filter-btn:hover {
+    background-color: #3a70d1;
+  }
+  
+  .clear-filter-btn {
+    background-color: transparent;
+    color: #6c757d;
+    border: 1px solid #dbe0e5;
+    padding: 8px 15px;
+    border-radius: 6px;
+  }
+  
+  .clear-filter-btn:hover {
+    background-color: #f3f4f6;
+  }
+  
+  /* Search Box */
+  .search-box {
+    margin-bottom: 15px;
+    position: relative;
+  }
+  
+  .search-box input {
+    width: 100%;
+    padding: 12px 15px 12px 40px;
+    border: 1px solid #dbe0e5;
+    border-radius: 8px;
+    font-size: 15px;
+    background-color: #f8f9fa;
+    transition: all 0.3s;
+  }
+  
+  .search-box:before {
+    content: "\f002";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+  }
+  
+  .search-box input:focus {
+    border-color: #4481eb;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(68, 129, 235, 0.1);
+    background-color: #fff;
+  }
+  
+  /* Selection Tables */
+  .selection-table {
+    max-height: 450px;
+    overflow-y: auto;
+    border: 1px solid #eaedf1;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  thead {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 1;
+  }
+  
+  th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eaedf1;
+  }
+  
+  th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #2c3e50;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+  
+  tr:hover {
+    background-color: #f8f9fb;
+  }
+  
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .checkbox-col {
+    width: 40px;
+  }
+  
+  /* Pagination Controls */
+  .pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding: 10px 0;
+    border-top: 1px solid #eaedf1;
+  }
+  
+  .pagination-info {
+    font-size: 14px;
+    color: #6c757d;
+  }
+  
+  .pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .pagination-btn {
+    background-color: transparent;
+    border: 1px solid #dbe0e5;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  
+  .pagination-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #c1c9d1;
+  }
+  
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .page-indicator {
+    margin: 0 10px;
+    font-size: 14px;
+    color: #6c757d;
+  }
+  
+  .page-size-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .page-size-selector label {
+    font-size: 14px;
+    color: #6c757d;
+  }
+  
+  .page-size-selector select {
+    width: auto;
+    padding: 6px 10px;
+  }
+  
+  /* Confirmation Box */
+  .confirmation-box {
+    padding: 25px;
+    background-color: #f9fafc;
+    border-radius: 12px;
+    border: 1px solid #eaedf1;
+  }
+  
+  .confirmation-box h2 {
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+  }
+  
+  .summary-section {
+    margin-bottom: 30px;
+  }
+  
+  .summary-card {
+    display: flex;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eaedf1;
+  }
+  
+  .summary-icon {
+    margin-right: 20px;
+    font-size: 32px;
+    color: #4481eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: rgba(68, 129, 235, 0.1);
+  }
+  
+  .summary-content {
+    flex: 1;
+  }
+  
+  .summary-content h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  .summary-content p {
+    margin-bottom: 8px;
+    font-size: 16px;
+  }
+  
+  .summary-stats {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  
+  .stat-card {
+    flex: 1;
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eaedf1;
+    transition: transform 0.3s;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .stat-icon {
+    font-size: 28px;
+    color: #4481eb;
+    margin-bottom: 15px;
+  }
+  
+  .stat-number {
+    font-size: 36px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 5px;
+  }
+  
+  .stat-label {
+    font-size: 16px;
+    color: #6c757d;
+    font-weight: 500;
+  }
+  
+  /* Buttons */
+  .form-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+  }
+  
+  .btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .btn i {
+    font-size: 14px;
+  }
+  
+  .back-btn {
+    background-color: #f1f3f5;
+    color: #495057;
+  }
+  
+  .back-btn:hover {
+    background-color: #e9ecef;
+  }
+  
+  .back-btn:disabled {
+    background-color: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+  }
+  
+  .next-btn {
+    background: linear-gradient(90deg, #4481eb, #04befe);
+    color: white;
+  }
+  
+  .next-btn:hover {
+    background: linear-gradient(90deg, #3670d6, #0497db);
+    box-shadow: 0 4px 10px rgba(68, 129, 235, 0.2);
+    transform: translateY(-2px);
+  }
+  
+  .submit-btn {
+    background: linear-gradient(90deg, #2ecc71, #27ae60);
+    color: white;
+  }
+  
+  .submit-btn:hover {
+    background: linear-gradient(90deg, #27ae60, #229954);
+    box-shadow: 0 4px 10px rgba(46, 204, 113, 0.2);
+    transform: translateY(-2px);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 992px) {
+    .filter-row {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .summary-stats {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .stat-card {
+      padding: 15px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .survey-container {
+      padding: 20px;
+    }
+    
+    .steps {
+      display: none;
+    }
+    
+    th, td {
+      padding: 10px;
+      font-size: 14px;
+    }
+    
+    .selection-table {
+      max-height: 350px;
+    }
+    
+    .pagination-controls {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .summary-card {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    .summary-icon {
+      margin: 0 auto 15px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      font-size: 14px;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .survey-header h1 {
+      font-size: 24px;
+    }
+    
+    .pagination-buttons {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .form-navigation {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .back-btn {
+      order: 2;
+    }
+    
+    .next-btn, .submit-btn {
+      order: 1;
+    }
+  }
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+  // Variables
+  let currentTab = 1;
+  const totalTabs = 5;
+  const nextBtn = document.getElementById('nextBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  const progress = document.getElementById('form-progress');
+  
+  // Contact pagination variables
+  let currentPage = 1;
+  let pageSize = 10;
+  let totalContacts = 0;
+  let totalPages = 0;
+  let filteredContacts = [];
+  let allContacts = [];
+  
+  // Function to show the current tab
+  function showTab(tabNumber) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    
+    // Show the current tab
+    document.getElementById(`tab-${tabNumber}`).classList.add('active');
+    
+    // Update progress bar
+    progress.style.width = `${(tabNumber / totalTabs) * 100}%`;
+    
+    // Update steps
+    document.querySelectorAll('.step').forEach(step => {
+      const stepNum = parseInt(step.dataset.step);
+      step.classList.remove('active', 'completed');
+      
+      if (stepNum === tabNumber) {
+        step.classList.add('active');
+      } else if (stepNum < tabNumber) {
+        step.classList.add('completed');
+      }
+    });
+    
+    // Enable/disable buttons
+    prevBtn.disabled = tabNumber === 1;
+    
+    if (tabNumber === totalTabs) {
+      nextBtn.style.display = 'none';
+      submitBtn.style.display = 'block';
+      updateSummary();
+    } else {
+      nextBtn.style.display = 'block';
+      submitBtn.style.display = 'none';
+    }
+  }
+  
+  // Initialize contact data
+  function initializeContactData() {
+    // Store all contact rows for filtering
+    allContacts = Array.from(document.querySelectorAll('.contact-row'));
+    filteredContacts = [...allContacts];
+    totalContacts = filteredContacts.length;
+    totalPages = Math.ceil(totalContacts / pageSize) || 1; // Ensure at least 1 page even if no contacts
+    
+    updatePaginationInfo();
+    loadContactsPage(1);
+  }
+  
+  // Load contacts for the current page
+  function loadContactsPage(page) {
+    const tableBody = document.getElementById('contacts-table-body');
+    tableBody.innerHTML = '';
+    
+    // Calculate start and end indices
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, totalContacts);
+    
+    if (filteredContacts.length === 0) {
+      // No results found - show empty state message
+      const emptyRow = document.createElement('tr');
+      emptyRow.innerHTML = '<td colspan="8" style="text-align: center; padding: 20px;">No contacts found matching the filters</td>';
+      tableBody.appendChild(emptyRow);
+    } else {
+      // Display filtered contacts for this page
+      for (let i = startIndex; i < endIndex; i++) {
+        tableBody.appendChild(filteredContacts[i].cloneNode(true));
+      }
+    }
+    
+    currentPage = page;
+    updatePaginationControls();
+  }
+  
+  // Update pagination information
+  function updatePaginationInfo() {
+    const start = totalContacts > 0 ? Math.min(((currentPage - 1) * pageSize) + 1, totalContacts) : 0;
+    const end = Math.min(currentPage * pageSize, totalContacts);
+    
+    document.getElementById('showing-start').textContent = start;
+    document.getElementById('showing-end').textContent = end;
+    document.getElementById('total-contacts').textContent = totalContacts;
+    document.getElementById('current-page').textContent = currentPage;
+    document.getElementById('total-pages').textContent = totalPages;
+  }
+  
+  // Update pagination controls state
+  function updatePaginationControls() {
+    document.getElementById('first-page').disabled = currentPage === 1 || totalContacts === 0;
+    document.getElementById('prev-page').disabled = currentPage === 1 || totalContacts === 0;
+    document.getElementById('next-page').disabled = currentPage === totalPages || totalContacts === 0;
+    document.getElementById('last-page').disabled = currentPage === totalPages || totalContacts === 0;
+    updatePaginationInfo();
+  }
+  
+  // Apply filters to contacts
+  function applyFilters() {
+    const firstNameFilter = document.getElementById('first-name-filter').value.toLowerCase().trim();
+    const lastNameFilter = document.getElementById('last-name-filter').value.toLowerCase().trim();
+    const cityFilter = document.getElementById('city-filter').value.toLowerCase().trim();
+    const stateFilter = document.getElementById('state-filter').value.toLowerCase().trim();
+    const addressFilter = document.getElementById('address-filter').value.toLowerCase().trim();
+    const zipcodeStart = document.getElementById('zipcode-start').value.trim();
+    const zipcodeEnd = document.getElementById('zipcode-end').value.trim();
+    
+    // Filter contacts based on criteria
+    filteredContacts = allContacts.filter(row => {
+      const fullName = row.cells[1].textContent.toLowerCase().trim();
+      const nameParts = fullName.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+      
+      const email = row.cells[2].textContent.toLowerCase().trim();
+      const phone = row.cells[3].textContent.toLowerCase().trim();
+      const address = row.cells[4].textContent.toLowerCase().trim();
+      const city = row.cells[5].textContent.toLowerCase().trim();
+      const state = row.cells[6].textContent.toLowerCase().trim();
+      const zipcode = row.cells[7].textContent.trim();
+      
+      // Apply all filters
+      let matchesFirstName = !firstNameFilter || firstName.includes(firstNameFilter);
+      let matchesLastName = !lastNameFilter || lastName.includes(lastNameFilter);
+      let matchesCity = !cityFilter || city.includes(cityFilter);
+      let matchesState = !stateFilter || state.includes(stateFilter);
+      let matchesAddress = !addressFilter || address.includes(addressFilter);
+      
+      // Zipcode range filter
+      let matchesZipcode = true;
+      if (zipcodeStart && zipcodeEnd) {
+        matchesZipcode = zipcode >= zipcodeStart && zipcode <= zipcodeEnd;
+      } else if (zipcodeStart) {
+        matchesZipcode = zipcode >= zipcodeStart;
+      } else if (zipcodeEnd) {
+        matchesZipcode = zipcode <= zipcodeEnd;
+      }
+      
+      return matchesFirstName && matchesLastName && matchesCity && 
+             matchesState && matchesAddress && matchesZipcode;
+    });
+    
+    // Update total count and pagination
+    totalContacts = filteredContacts.length;
+    totalPages = Math.ceil(totalContacts / pageSize) || 1; // Ensure at least 1 page
+    
+    // Reset to first page
+    currentPage = 1;
+    loadContactsPage(1);
+  }
+  
+  // Clear all filters
+  function clearFilters() {
+    // Clear all filter input fields
+    document.getElementById('first-name-filter').value = '';
+    document.getElementById('last-name-filter').value = '';
+    document.getElementById('city-filter').value = '';
+    document.getElementById('state-filter').value = '';
+    document.getElementById('address-filter').value = '';
+    document.getElementById('zipcode-start').value = '';
+    document.getElementById('zipcode-end').value = '';
+    
+    // Reset to original dataset
+    filteredContacts = [...allContacts];
+    totalContacts = filteredContacts.length;
+    totalPages = Math.ceil(totalContacts / pageSize) || 1;
+    currentPage = 1;
+    loadContactsPage(1);
+  }
+  
+  // Contact search function
+  function searchContacts() {
+    const searchTerm = document.getElementById('contact-search').value.toLowerCase().trim();
+    
+    if (!searchTerm) {
+      filteredContacts = [...allContacts];
+    } else {
+      filteredContacts = allContacts.filter(row => {
+        return row.textContent.toLowerCase().includes(searchTerm);
+      });
+    }
+    
+    totalContacts = filteredContacts.length;
+    totalPages = Math.ceil(totalContacts / pageSize) || 1;
+    currentPage = 1;
+    loadContactsPage(1);
+  }
+  
+  // Next button click
+  nextBtn.addEventListener('click', function() {
+    if (currentTab < totalTabs) {
+      currentTab++;
+      showTab(currentTab);
+    }
+  });
+  
+  // Previous button click
+  prevBtn.addEventListener('click', function() {
+    if (currentTab > 1) {
+      currentTab--;
+      showTab(currentTab);
+    }
+  });
+  
+  // Select all functionality
+  document.getElementById('select-all-questions').addEventListener('change', function() {
+    document.querySelectorAll('input[name="questions"]').forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+  
+  document.getElementById('select-all-contacts').addEventListener('change', function() {
+    document.querySelectorAll('#contacts-table-body input[name="contacts"]').forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+  
+  document.getElementById('select-all-polltakers').addEventListener('change', function() {
+    document.querySelectorAll('input[name="polltakers"]').forEach(checkbox => {
+      checkbox.checked = this.checked;
+    });
+  });
+  
+  // Search functionality
+  document.getElementById('question-search').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
+    document.querySelectorAll('.question-row').forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(searchTerm) ? 'table-row' : 'none';
+    });
+  });
+  
+  document.getElementById('contact-search').addEventListener('input', function() {
+    searchContacts();
+  });
+  
+  document.getElementById('polltaker-search').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
+    document.querySelectorAll('.polltaker-row').forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(searchTerm) ? 'table-row' : 'none';
+    });
+  });
+  
+  // Pagination event listeners
+  document.getElementById('first-page').addEventListener('click', function() {
+    if (currentPage !== 1 && !this.disabled) {
+      loadContactsPage(1);
+    }
+  });
+  
+  document.getElementById('prev-page').addEventListener('click', function() {
+    if (currentPage > 1 && !this.disabled) {
+      loadContactsPage(currentPage - 1);
+    }
+  });
+  
+  document.getElementById('next-page').addEventListener('click', function() {
+    if (currentPage < totalPages && !this.disabled) {
+      loadContactsPage(currentPage + 1);
+    }
+  });
+  
+  document.getElementById('last-page').addEventListener('click', function() {
+    if (currentPage !== totalPages && !this.disabled) {
+      loadContactsPage(totalPages);
+    }
+  });
+  
+  // Page size change handler
+  document.getElementById('page-size').addEventListener('change', function() {
+    pageSize = parseInt(this.value);
+    totalPages = Math.ceil(totalContacts / pageSize) || 1;
+    currentPage = 1;
+    loadContactsPage(1);
+  });
+  
+  // Filter toggle
+  document.getElementById('toggle-filters').addEventListener('click', function() {
+    const filtersContainer = document.getElementById('filters-container');
+    const isDisplayed = filtersContainer.style.display === 'block';
+    filtersContainer.style.display = isDisplayed ? 'none' : 'block';
+  });
+  
+  // Apply filters button
+  document.getElementById('apply-filters').addEventListener('click', function() {
+    applyFilters();
+  });
+  
+  // Clear filters button
+  document.getElementById('clear-filters').addEventListener('click', function() {
+    clearFilters();
+  });
+  
+  // Update summary
+  function updateSummary() {
+    // Basic info
+    document.getElementById('summary-title').textContent = document.getElementById('title').value || 'Not specified';
+    document.getElementById('summary-description').textContent = document.getElementById('description').value || 'Not specified';
+    document.getElementById('summary-date').textContent = document.getElementById('survey_date').value || 'Not specified';
+    
+    // Count selected items
+    const selectedQuestions = document.querySelectorAll('input[name="questions"]:checked').length;
+    const selectedContacts = document.querySelectorAll('input[name="contacts"]:checked').length;
+    const selectedPolltakers = document.querySelectorAll('input[name="polltakers"]:checked').length;
+    
+    // Update summary counts
+    document.getElementById('summary-questions-count').textContent = selectedQuestions;
+    document.getElementById('summary-contacts-count').textContent = selectedContacts;
+    document.getElementById('summary-polltakers-count').textContent = selectedPolltakers;
+  }
+  
+  // Form validation function
+  function validateForm() {
+    let isValid = true;
+    let errorMessages = [];
+    
+    // Check if there's a title
+    if (!document.getElementById('title').value.trim()) {
+      errorMessages.push('Survey title is required');
+      isValid = false;
+    }
+    
+    // Check if at least one question is selected
+    if (document.querySelectorAll('input[name="questions"]:checked').length === 0) {
+      errorMessages.push('Please select at least one question for your survey');
+      isValid = false;
+    }
+    
+    // Check if at least one contact is selected
+    if (document.querySelectorAll('input[name="contacts"]:checked').length === 0) {
+      errorMessages.push('Please select at least one contact for your survey');
+      isValid = false;
+    }
+    
+    // Show validation errors if any
+    if (!isValid) {
+      alert(errorMessages.join('\n'));
+    }
+    
+    return isValid;
+  }
+  
+  // Form submission handler - UPDATED TO WORK WITH DJANGO
+  document.getElementById('survey-form').addEventListener('submit', function(e) {
+    // Validate the form before submission
+    if (!validateForm()) {
+      e.preventDefault(); // Only prevent submission if validation fails
+      return false;
+    }
+    
+    // If validation passes, let the form submit naturally to Django
+    // Add a loading state to prevent double submission
+    const submitButton = document.getElementById('submitBtn');
+    submitButton.disabled = true;
+    submitButton.innerHTML = 'Creating Survey...';
+    
+    // Form will now submit to Django backend
+    // Django will handle the redirect or response
+  });
+  
+  // Initialize form
+  showTab(currentTab);
+  initializeContactData();
+});
+</script>
+<!-- <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Variables
+    let currentTab = 1;
+    const totalTabs = 5;
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const progress = document.getElementById('form-progress');
+    
+    // Contact pagination variables
+    let currentPage = 1;
+    let pageSize = 10;
+    let totalContacts = 0;
+    let totalPages = 0;
+    let filteredContacts = [];
+    
+    // Function to show the current tab
+    function showTab(tabNumber) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Show the current tab
+      document.getElementById(`tab-${tabNumber}`).classList.add('active');
+      
+      // Update progress bar
+      progress.style.width = `${(tabNumber / totalTabs) * 100}%`;
+      
+      // Update steps
+      document.querySelectorAll('.step').forEach(step => {
+        const stepNum = parseInt(step.dataset.step);
+        step.classList.remove('active', 'completed');
+        
+        if (stepNum === tabNumber) {
+          step.classList.add('active');
+        } else if (stepNum < tabNumber) {
+          step.classList.add('completed');
+        }
+      });
+      
+      // Enable/disable buttons
+      prevBtn.disabled = tabNumber === 1;
+      
+      if (tabNumber === totalTabs) {
+        nextBtn.style.display = 'none';
+        submitBtn.style.display = 'block';
+        updateSummary();
+      } else {
+        nextBtn.style.display = 'block';
+        submitBtn.style.display = 'none';
+      }
+    }
+    
+    // Initialize contact data
+    function initializeContactData() {
+      // In a real application, this would be loaded from the server
+      // Simulating a large dataset for demonstration
+      totalContacts = document.querySelectorAll('.contact-row').length;
+      
+      // If we have actual contacts data in the DOM
+      if (totalContacts > 0) {
+        filteredContacts = Array.from(document.querySelectorAll('.contact-row'));
+      } else {
+        // Create dummy data for testing with large numbers (100,000 contacts)
+        totalContacts = 100000;
+        filteredContacts = [];
+        
+        // We'll generate these on-demand instead of creating 100k DOM elements
+      }
+      
+      totalPages = Math.ceil(totalContacts / pageSize);
+      updatePaginationInfo();
+      loadContactsPage(1);
+    }
+    
+    // Load contacts for the current page
+    function loadContactsPage(page) {
+      const tableBody = document.getElementById('contacts-table-body');
+      tableBody.innerHTML = '';
+      
+      // Calculate start and end indices
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, totalContacts);
+      
+      // If we have pre-loaded DOM elements
+      if (filteredContacts.length && filteredContacts[0] instanceof HTMLElement) {
+        for (let i = startIndex; i < endIndex && i < filteredContacts.length; i++) {
+          tableBody.appendChild(filteredContacts[i].cloneNode(true));
+        }
+      } else {
+        // Generate contacts on the fly for large datasets
+        for (let i = startIndex; i < endIndex; i++) {
+          const row = document.createElement('tr');
+          row.className = 'contact-row';
+          
+          // Generate a contact (this would come from actual data in real app)
+          const contactId = i + 1;
+          const firstName = `First${contactId}`;
+          const lastName = `Last${contactId}`;
+          const email = `contact${contactId}@example.com`;
+          const phone = `+1-555-${String(contactId).padStart(4, '0')}`;
+          const address = `${contactId} Main St`;
+          const city = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix'][i % 5];
+          const state = ['NY', 'CA', 'IL', 'TX', 'AZ'][i % 5];
+          const zipcode = 700000 + Math.floor(i / 100);
+          
+          row.innerHTML = `
+            <td><input type="checkbox" name="contacts" value="${contactId}"></td>
+            <td>${firstName} ${lastName}</td>
+            <td>${email}</td>
+            <td>${phone}</td>
+            <td>${address}</td>
+            <td>${city}</td>
+            <td>${state}</td>
+            <td>${zipcode}</td>
+          `;
+          
+          tableBody.appendChild(row);
+        }
+      }
+      
+      currentPage = page;
+      updatePaginationControls();
+    }
+    
+    // Update pagination information
+    function updatePaginationInfo() {
+      document.getElementById('showing-start').textContent = Math.min(((currentPage - 1) * pageSize) + 1, totalContacts);
+      document.getElementById('showing-end').textContent = Math.min(currentPage * pageSize, totalContacts);
+      document.getElementById('total-contacts').textContent = totalContacts.toLocaleString();
+      document.getElementById('current-page').textContent = currentPage;
+      document.getElementById('total-pages').textContent = totalPages;
+    }
+    
+    // Update pagination controls state
+    function updatePaginationControls() {
+      document.getElementById('first-page').disabled = currentPage === 1;
+      document.getElementById('prev-page').disabled = currentPage === 1;
+      document.getElementById('next-page').disabled = currentPage === totalPages;
+      document.getElementById('last-page').disabled = currentPage === totalPages;
+      updatePaginationInfo();
+    }
+    
+    // Apply filters to contacts
+    function applyFilters() {
+      const firstNameFilter = document.getElementById('first-name-filter').value.toLowerCase();
+      const lastNameFilter = document.getElementById('last-name-filter').value.toLowerCase();
+      const cityFilter = document.getElementById('city-filter').value.toLowerCase();
+      const stateFilter = document.getElementById('state-filter').value.toLowerCase();
+      const addressFilter = document.getElementById('address-filter').value.toLowerCase();
+      const zipcodeStart = parseInt(document.getElementById('zipcode-start').value) || 0;
+      const zipcodeEnd = parseInt(document.getElementById('zipcode-end').value) || 999999;
+      
+      // If we have DOM elements
+      if (document.querySelectorAll('.contact-row').length > 0) {
+        filteredContacts = Array.from(document.querySelectorAll('.contact-row')).filter(row => {
+          const name = row.cells[1].textContent.toLowerCase();
+          const city = row.cells[5].textContent.toLowerCase();
+          const state = row.cells[6].textContent.toLowerCase();
+          const address = row.cells[4].textContent.toLowerCase();
+          const zipcode = parseInt(row.cells[7].textContent);
+          
+          return (!firstNameFilter || name.includes(firstNameFilter)) &&
+                 (!lastNameFilter || name.includes(lastNameFilter)) &&
+                 (!cityFilter || city.includes(cityFilter)) &&
+                 (!stateFilter || state.includes(stateFilter)) &&
+                 (!addressFilter || address.includes(addressFilter)) &&
+                 (!zipcodeStart || !zipcodeEnd || (zipcode >= zipcodeStart && zipcode <= zipcodeEnd));
+        });
+      } else {
+        // For large datasets, we'll filter on the server side
+        // Here we simulate the filtering
+        totalContacts = Math.floor(100000 * Math.random() * 0.8) + 10000; // Simulate filtered result count
+      }
+      
+      totalPages = Math.ceil(totalContacts / pageSize);
+      currentPage = 1;
+      loadContactsPage(1);
+    }
+    
+    // Clear all filters
+    function clearFilters() {
+      document.getElementById('first-name-filter').value = '';
+      document.getElementById('last-name-filter').value = '';
+      document.getElementById('city-filter').value = '';
+      document.getElementById('state-filter').value = '';
+      document.getElementById('address-filter').value = '';
+      document.getElementById('zipcode-start').value = '';
+      document.getElementById('zipcode-end').value = '';
+      
+      // Reset to full dataset
+      initializeContactData();
+    }
+    
+    // Contact search function
+    function searchContacts() {
+      const searchTerm = document.getElementById('contact-search').value.toLowerCase();
+      
+      if (!searchTerm) {
+        initializeContactData();
+        return;
+      }
+      
+      // If we have DOM elements
+      if (document.querySelectorAll('.contact-row').length > 0) {
+        filteredContacts = Array.from(document.querySelectorAll('.contact-row')).filter(row => {
+          return row.textContent.toLowerCase().includes(searchTerm);
+        });
+      } else {
+        // For large datasets, we'll search on the server side
+        // Here we simulate the search
+        totalContacts = Math.floor(totalContacts * Math.random() * 0.5) + 1000; // Simulate search result count
+      }
+      
+      totalPages = Math.ceil(totalContacts / pageSize);
+      currentPage = 1;
+      loadContactsPage(1);
+    }
+    
+    // Next button click
+    nextBtn.addEventListener('click', function() {
+      if (currentTab < totalTabs) {
+        currentTab++;
+        showTab(currentTab);
+      }
+    });
+    
+    // Previous button click
+    prevBtn.addEventListener('click', function() {
+      if (currentTab > 1) {
+        currentTab--;
+        showTab(currentTab);
+      }
+    });
+    
+    // Select all functionality
+    document.getElementById('select-all-questions').addEventListener('change', function() {
+      document.querySelectorAll('input[name="questions"]').forEach(checkbox => {
+        checkbox.checked = this.checked;
+      });
+    });
+    
+    document.getElementById('select-all-contacts').addEventListener('change', function() {
+      document.querySelectorAll('input[name="contacts"]').forEach(checkbox => {
+        checkbox.checked = this.checked;
+      });
+    });
+    
+    document.getElementById('select-all-polltakers').addEventListener('change', function() {
+      document.querySelectorAll('input[name="polltakers"]').forEach(checkbox => {
+        checkbox.checked = this.checked;
+      });
+    });
+    
+    // Search functionality
+    document.getElementById('question-search').addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      document.querySelectorAll('.question-row').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? 'table-row' : 'none';
+      });
+    });
+    
+    document.getElementById('contact-search').addEventListener('input', function() {
+      searchContacts();
+    });
+    
+    document.getElementById('polltaker-search').addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      document.querySelectorAll('.polltaker-row').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? 'table-row' : 'none';
+      });
+    });
+    
+    // Pagination event listeners
+    document.getElementById('first-page').addEventListener('click', function() {
+      if (currentPage !== 1) {
+        loadContactsPage(1);
+      }
+    });
+    
+    document.getElementById('prev-page').addEventListener('click', function() {
+      if (currentPage > 1) {
+        loadContactsPage(currentPage - 1);
+      }
+    });
+    
+    document.getElementById('next-page').addEventListener('click', function() {
+      if (currentPage < totalPages) {
+        loadContactsPage(currentPage + 1);
+      }
+    });
+    
+    document.getElementById('last-page').addEventListener('click', function() {
+      if (currentPage !== totalPages) {
+        loadContactsPage(totalPages);
+      }
+    });
+    
+    // Page size change handler
+    document.getElementById('page-size').addEventListener('change', function() {
+      pageSize = parseInt(this.value);
+      totalPages = Math.ceil(totalContacts / pageSize);
+      currentPage = 1;
+      loadContactsPage(1);
+    });
+    
+    // Filter toggle
+    document.getElementById('toggle-filters').addEventListener('click', function() {
+      const filtersContainer = document.getElementById('filters-container');
+      const isDisplayed = filtersContainer.style.display === 'block';
+      filtersContainer.style.display = isDisplayed ? 'none' : 'block';
+    });
+    
+    // Apply filters button
+    document.getElementById('apply-filters').addEventListener('click', function() {
+      applyFilters();
+    });
+    
+    // Clear filters button
+    document.getElementById('clear-filters').addEventListener('click', function() {
+      clearFilters();
+    });
+    
+    // Update summary
+    function updateSummary() {
+      // Basic info
+      document.getElementById('summary-title').textContent = document.getElementById('title').value;
+      document.getElementById('summary-description').textContent = document.getElementById('description').value;
+      document.getElementById('summary-date').textContent = document.getElementById('survey_date').value;
+      
+      // Selected questions
+      const selectedQuestions = document.querySelectorAll('input[name="questions"]:checked');
+      document.getElementById('summary-questions-count').textContent = selectedQuestions.length;
+      
+      // Selected contacts
+      const selectedContacts = document.querySelectorAll('input[name="contacts"]:checked');
+      document.getElementById('summary-contacts-count').textContent = selectedContacts.length;
+      
+      // Selected polltakers
+      const selectedPolltakers = document.querySelectorAll('input[name="polltakers"]:checked');
+      document.getElementById('summary-polltakers-count').textContent = selectedPolltakers.length;
+    }
+    
+    // Form submission handler
+    document.getElementById('survey-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Here you would normally send the data to the server
+      alert('Survey created successfully!');
+      
+      // You could also redirect the user
+      // window.location.href = '/surveys';
+    });
+    
+    // Initialize form
+    showTab(currentTab);
+    initializeContactData();
+  });
+</script> -->
+{% endblock content %}

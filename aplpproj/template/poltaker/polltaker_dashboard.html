@@ -1,0 +1,158 @@
+<!-- polltaker_dashboard.html -->
+{% extends 'pollbase.html' %} 
+
+{% block content %}
+<div class="dashboard">
+    <div class="header">
+        <h1>Your Surveys</h1>
+        <div class="stats">{{ assigned_surveys|length }} assigned</div>
+    </div>
+    
+    <div class="surveys">
+        {% for survey in assigned_surveys %}
+            <div class="survey-item">
+                <div class="survey-info">
+                    <h3> {{ survey.title }}</h3>
+                    <p>Description : {{ survey.description|truncatewords:12 }}</p>
+                    <p>Date : {{ survey.survey_date }}</p>
+
+                </div>
+                <a href="{% url 'poltakerapp:survey_contacts' survey.survey_token %}" class="start-btn">
+                    Start Survey
+                </a>
+            </div>
+        {% empty %}
+            <div class="empty">
+                <div class="empty-icon">📋</div>
+                <p>No surveys available</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .dashboard {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+    
+    .stats {
+        background: #f3f4f6;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        color: #6b7280;
+        font-weight: 500;
+    }
+    
+    .surveys {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .survey-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: all 0.2s ease;
+    }
+    
+    .survey-item:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        transform: translateY(-1px);
+    }
+    
+    .survey-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .survey-info h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #111827;
+        margin: 0 0 0.5rem 0;
+    }
+    
+    .survey-info p {
+        color: #6b7280;
+        margin: 0;
+        line-height: 1.5;
+    }
+    
+    .start-btn {
+        background: #3b82f6;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: background-color 0.2s;
+        white-space: nowrap;
+        margin-left: 1rem;
+    }
+    
+    .start-btn:hover {
+        background: #2563eb;
+    }
+    
+    .empty {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #9ca3af;
+    }
+    
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .empty p {
+        font-size: 1.125rem;
+        font-weight: 500;
+    }
+    
+    @media (max-width: 640px) {
+        .header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .survey-item {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+        
+        .start-btn {
+            margin-left: 0;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock content %}

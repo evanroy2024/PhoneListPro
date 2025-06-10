@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h2>Subscription Plans</h2>
+    <ul>
+        {% for plan in plans %}
+            <li>
+                <h3>{{ plan.name }}</h3>
+                <p>Price: ₹{{ plan.price }}</p>
+                <form action="{% url 'mainapp:checkout' plan.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit">Buy Now</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

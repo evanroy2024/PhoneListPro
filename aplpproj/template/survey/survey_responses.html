@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    .survey-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .page-header {
+        background: white;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        position: relative;
+        overflow: hidden;
+        padding-left: 8px;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        background: #7373ff;
+        border-radius: 0 0 0 12px;
+    }
+
+    .header-content {
+        padding: 32px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .header-text {
+        flex: 1;
+    }
+
+    .survey-title {
+        margin: 0 0 8px 0;
+        font-size: 28px;
+        font-weight: 700;
+        color: #2d3748;
+    }
+
+    .survey-subtitle {
+        font-size: 16px;
+        color: #718096;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .response-stats {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, #7373ff 0%, #5a5aff 100%);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(115, 115, 255, 0.3);
+    }
+
+    .response-count-text {
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0.9;
+    }
+
+    .response-number {
+        font-size: 32px;
+        font-weight: 700;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 24px;
+        position: relative;
+    }
+
+    .table-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        background: #7373ff;
+        border-radius: 0 0 0 12px;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .responses-table {
+        width: 100%;
+        min-width: 800px;
+        border-collapse: collapse;
+        background: white;
+        font-size: 14px;
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #7373ff 0%, #5a5aff 100%);
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .table-header th {
+        padding: 18px 20px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        border-right: 1px solid rgba(255, 255, 255, 0.15);
+        white-space: nowrap;
+        min-width: 150px;
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .table-header th:first-child {
+        min-width: 200px;
+        position: sticky;
+        left: 0;
+        background: linear-gradient(135deg, #7373ff 0%, #5a5aff 100%);
+        z-index: 11;
+        border-right: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .table-header th:last-child {
+        border-right: none;
+    }
+
+    .response-row {
+        border-bottom: 1px solid #e2e8f0;
+        transition: background-color 0.15s ease;
+    }
+
+    .response-row:hover {
+        background-color: #f8faff;
+    }
+
+    .response-row:last-child {
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .response-cell {
+        padding: 14px 20px;
+        border-right: 1px solid #e2e8f0;
+        vertical-align: top;
+        color: #4a5568;
+        line-height: 1.5;
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        position: relative;
+    }
+
+    .response-cell:hover {
+        white-space: normal;
+        overflow: visible;
+        background: white;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        z-index: 5;
+        border-radius: 6px;
+        transform: scale(1.02);
+        transition: all 0.2s ease;
+    }
+
+    .contact-cell {
+        font-weight: 500;
+        color: #2d3748;
+        position: sticky;
+        left: 0;
+        background: white;
+        border-right: 2px solid #e2e8f0;
+        z-index: 2;
+        min-width: 200px;
+    }
+
+    .contact-cell:hover {
+        background: #f8faff;
+    }
+
+    .contact-name {
+        font-weight: 700;
+        margin-bottom: 4px;
+        color: #7373ff;
+        font-size: 15px;
+    }
+
+    .contact-email {
+        font-size: 12px;
+        color: #718096;
+        font-weight: 400;
+    }
+
+    .response-cell:last-child {
+        border-right: none;
+    }
+
+    .no-responses {
+        text-align: center;
+        padding: 80px 40px;
+        background: white;
+        color: #718096;
+        font-size: 16px;
+    }
+
+    .no-responses-icon {
+        font-size: 48px;
+        color: #cbd5e0;
+        margin-bottom: 16px;
+    }
+
+    .no-responses-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 8px;
+    }
+
+    .no-responses-text {
+        color: #718096;
+        line-height: 1.6;
+    }
+
+    .bottom-actions {
+        background: white;
+        padding: 24px 32px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        position: relative;
+        padding-left: 40px;
+    }
+
+    .bottom-actions::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        background: #7373ff;
+        border-radius: 0 0 0 12px;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 140px;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: #7373ff;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #5a5aff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(115, 115, 255, 0.3);
+    }
+
+    .btn-secondary {
+        background: #059669;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #047857;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+    }
+
+    .btn-outline {
+        background: white;
+        color: #4a5568;
+        border: 1px solid #d1d5db;
+    }
+
+    .btn-outline:hover {
+        background: #f9fafb;
+        border-color: #7373ff;
+        color: #7373ff;
+        transform: translateY(-1px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .survey-container {
+            padding: 16px;
+        }
+        
+        .header-content {
+            padding: 24px 32px;
+        }
+        
+        .survey-title {
+            font-size: 24px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 20px 24px;
+        }
+
+        .response-stats {
+            align-self: stretch;
+            justify-content: center;
+        }
+        
+        .responses-table {
+            font-size: 13px;
+            min-width: 600px;
+        }
+        
+        .response-cell, .table-header th {
+            padding: 12px 16px;
+        }
+        
+        .btn {
+            flex: 1;
+            min-width: auto;
+        }
+
+        .bottom-actions {
+            padding: 20px 24px 20px 32px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .survey-container {
+            padding: 12px;
+        }
+
+        .header-content {
+            padding: 16px 20px;
+        }
+
+        .survey-title {
+            font-size: 20px;
+        }
+
+        .survey-subtitle {
+            font-size: 14px;
+        }
+
+        .response-stats {
+            padding: 12px 20px;
+        }
+
+        .response-number {
+            font-size: 24px;
+        }
+
+        .bottom-actions {
+            flex-direction: column;
+            padding: 16px 20px 16px 28px;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+
+        .responses-table {
+            min-width: 500px;
+        }
+
+        .response-cell, .table-header th {
+            padding: 10px 12px;
+        }
+    }
+</style>
+
+<div class="survey-container">
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="survey-title">{{ survey.title }}</h1>
+                <p class="survey-subtitle">Comprehensive response analytics and data overview</p>
+            </div>
+            {% if responses %}
+                <div class="response-stats">
+                    <div class="response-count-text">Total Responses</div>
+                    <div class="response-number">{{ responses|length }}</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if responses %}
+        <div class="table-container">
+            <div class="table-wrapper">
+                <table class="responses-table">
+                    <thead class="table-header">
+                        <tr>
+                            <th>Contact Information</th>
+                            {% if responses.0.answers %}
+                                {% for item in responses.0.answers %}
+                                    <th title="{{ item.question }}">{{ item.question|truncatechars:25 }}</th>
+                                {% endfor %}
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for res in responses %}
+                        <tr class="response-row">
+                            <td class="response-cell contact-cell">
+                                <div class="contact-name">{{ res.contact_name }}</div>
+                                <div class="contact-email">{{ res.email }}</div>
+                            </td>
+                            {% for item in res.answers %}
+                                <td class="response-cell" title="{{ item.answer }}">
+                                    {{ item.answer|truncatechars:35 }}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="table-container">
+            <div class="no-responses">
+                <div class="no-responses-icon">📋</div>
+                <div class="no-responses-title">No Responses Yet</div>
+                <div class="no-responses-text">
+                    Survey responses will appear here once participants begin submitting their answers.<br>
+                    Share your survey link to start collecting valuable feedback.
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="bottom-actions">
+      <button class="btn btn-primary" onclick="window.location.href='{% url 'surveyapp:download_survey_pdf' survey.id %}'">
+            📄 Download PDF
+        </button>
+
+        <button class="btn btn-secondary" onclick="window.location.href='{% url 'surveyapp:download_survey_csv' survey.id %}'">
+            📊 Download CSV
+        </button>
+        <button class="btn btn-outline" onclick="window.location.href='{% url 'surveyapp:all_surveys' %}'">
+            ← Go Back
+        </button>
+    </div>
+</div>
+
+{% endblock %}
